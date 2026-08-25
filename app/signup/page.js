@@ -117,7 +117,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL
       } else {
         setError(data.message || 'Registration failed. Please try again.')
       }
-    } catch (err) {
+    } catch {
       setError('Network error. Please check your connection.')
     } finally {
       setLoading(false)
