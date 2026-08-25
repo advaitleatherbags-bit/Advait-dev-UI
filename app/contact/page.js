@@ -67,7 +67,7 @@ export default function Contact() {
             Why Choose ADVIT?
           </h1>
           <p className="text-gray-500 text-lg max-w-2xl mx-auto">
-            We're committed to providing the best shopping experience
+            We&apos;re committed to providing the best shopping experience
           </p>
         </motion.div>
 
@@ -104,7 +104,7 @@ export default function Contact() {
               Get in Touch
             </h2>
             <p className="text-gray-500 max-w-2xl mx-auto">
-              We'd love to hear from you. Reach out to us anytime.
+              We&apos;d love to hear from you. Reach out to us anytime.
             </p>
           </motion.div>
 

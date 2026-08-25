@@ -25,7 +25,7 @@ export default function CategorySection() {
         >
           <h2 className="section-title">Shop by Category</h2>
           <p className="section-subtitle">
-            Find exactly what you're looking for in our curated collections
+            Find exactly what you&apos;re looking for in our curated collections
           </p>
         </motion.div>
         

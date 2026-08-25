@@ -5,7 +5,6 @@ import { motion } from 'framer-motion'
 import { 
   ClockIcon, 
   HomeIcon, 
-  ArrowPathIcon,
   ShoppingBagIcon
 } from '@heroicons/react/24/outline'
 
@@ -34,7 +33,7 @@ export default function PaymentPending() {
         <div className="p-6 space-y-6">
           <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-100 text-center">
             <p className="text-sm text-gray-600">
-              Please wait while we confirm your payment. You'll receive a confirmation shortly.
+              Please wait while we confirm your payment. You&apos;ll receive a confirmation shortly.
             </p>
           </div>
 

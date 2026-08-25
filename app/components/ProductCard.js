@@ -40,11 +40,9 @@ export default function ProductCard({ product }) {
     setLoading(false)
   }, [])
 
-  if (!product) return null
-
   // ✅ Check wishlist status
   const checkWishlist = async () => {
-    if (!userId) {
+    if (!userId || !productId) {
       setLoading(false)
       return
     }
@@ -72,6 +70,8 @@ export default function ProductCard({ product }) {
   useEffect(() => {
     checkWishlist()
   }, [productId, userId])
+
+  if (!product) return null
 
   // ✅ Add to Wishlist
   const addToWishlist = async () => {
@@ -226,6 +226,7 @@ export default function ProductCard({ product }) {
     >
       <div className="relative aspect-square bg-gray-50 overflow-hidden flex-shrink-0">
         <Link href={`/products/${productId}`}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- product images use runtime API URLs. */}
           <img
             src={productImage || 'https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=400'}
             alt={productName || 'Product'}
