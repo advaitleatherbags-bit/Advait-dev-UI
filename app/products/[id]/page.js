@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { HeartIcon, ShoppingBagIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid'
 import { motion } from 'framer-motion'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
+const getToken = () => localStorage.getItem('token')
 
 export default function ProductDetail() {
   const params = useParams()
@@ -24,17 +25,10 @@ export default function ProductDetail() {
   const [sizes, setSizes] = useState([])
 
   // ✅ Get token from localStorage
-  const getToken = () => localStorage.getItem('token')
   const user = JSON.parse(localStorage.getItem('user') || '{}')
   const userId = user.userId
 
-  useEffect(() => {
-    if (id) {
-      fetchProduct()
-    }
-  }, [id])
-
-  const fetchProduct = async () => {
+  const fetchProduct = useCallback(async () => {
     setLoading(true)
     setError('')
     try {
@@ -66,12 +60,18 @@ export default function ProductDetail() {
       } else {
         setError('Failed to load product')
       }
-    } catch (err) {
+    } catch {
       setError('Network error. Please try again.')
     } finally {
       setLoading(false)
     }
-  }
+  }, [id])
+
+  useEffect(() => {
+    if (id) {
+      fetchProduct()
+    }
+  }, [fetchProduct, id])
 
   const addToCart = async () => {
     if (!userId) {
@@ -101,7 +101,7 @@ export default function ProductDetail() {
         const err = await response.text()
         alert('Failed to add to cart: ' + err)
       }
-    } catch (error) {
+    } catch {
       alert('Network error. Please try again.')
     } finally {
       setAddingToCart(false)
@@ -142,7 +142,7 @@ export default function ProductDetail() {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16 text-center">
         <h2 className="text-2xl font-bold text-[#391F10] mb-2">Product Not Found</h2>
-        <p className="text-gray-600">The product you're looking for doesn't exist.</p>
+        <p className="text-gray-600">The product you&apos;re looking for doesn&apos;t exist.</p>
         <button 
           onClick={() => window.location.href = '/'}
           className="mt-4 bg-[#391F10] text-white px-6 py-2 rounded-lg hover:bg-[#2a1509] transition-all"
@@ -163,6 +163,7 @@ export default function ProductDetail() {
           transition={{ duration: 0.6 }}
           className="relative h-96 md:h-[500px] bg-gray-100 rounded-2xl overflow-hidden shadow-lg"
         >
+          {/* eslint-disable-next-line @next/next/no-img-element -- product images use runtime API URLs. */}
           <img
             src={product.imageUrl || 'https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=600'}
             alt={product.title || 'Product'}

@@ -57,7 +57,7 @@ export default function Features() {
             Why Choose ADVIT?
           </h2>
           <p className="text-gray-500 text-base max-w-2xl mx-auto">
-            We're committed to providing the best shopping experience
+            We&apos;re committed to providing the best shopping experience
           </p>
         </motion.div>
         

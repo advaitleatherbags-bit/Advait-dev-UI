@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useState, useEffect, useCallback } from 'react'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { 
@@ -14,10 +14,10 @@ import {
 } from '@heroicons/react/24/outline'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
+const getToken = () => localStorage.getItem('token')
 
 export default function PaymentStatus() {
   const params = useParams()
-  const router = useRouter()
   const orderId = params.orderId
 
   const [status, setStatus] = useState(null)
@@ -25,10 +25,8 @@ export default function PaymentStatus() {
   const [error, setError] = useState('')
   const [retrying, setRetrying] = useState(false)
 
-  const getToken = () => localStorage.getItem('token')
-
   // ✅ GET /api/orders/{orderId}/payment-status
-  const fetchPaymentStatus = async () => {
+  const fetchPaymentStatus = useCallback(async () => {
     if (!orderId) return
 
     setLoading(true)
@@ -49,16 +47,16 @@ export default function PaymentStatus() {
       } else {
         setError('Failed to fetch payment status')
       }
-    } catch (err) {
+    } catch {
       setError('Network error. Please try again.')
     } finally {
       setLoading(false)
     }
-  }
+  }, [orderId])
 
   useEffect(() => {
     fetchPaymentStatus()
-  }, [orderId])
+  }, [fetchPaymentStatus])
 
   // ✅ Retry Payment - POST /api/orders/{orderId}/retry-payment
   const retryPayment = async () => {
@@ -95,7 +93,7 @@ export default function PaymentStatus() {
         const err = await response.text()
         setError(err || 'Failed to retry payment')
       }
-    } catch (err) {
+    } catch {
       setError('Network error. Please try again.')
     } finally {
       setRetrying(false)

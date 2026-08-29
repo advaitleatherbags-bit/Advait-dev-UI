@@ -114,6 +114,7 @@ export default function Home() {
               transition={{ duration: 0.6 }}
               className="relative h-64 md:h-80 rounded-2xl overflow-hidden shadow-xl"
             >
+              {/* eslint-disable-next-line @next/next/no-img-element -- the image is a static remote marketing asset. */}
               <img
                 src="https://images.unsplash.com/photo-1547949003-9792a18a2601?w=600"
                 alt="Leather Craftsmanship"

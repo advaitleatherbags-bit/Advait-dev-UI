@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
   XCircleIcon,
@@ -15,7 +15,6 @@ import {
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
 function PaymentFailureContent() {
-  const router = useRouter()
   const searchParams = useSearchParams()
 
   const [orderId, setOrderId] = useState('')
@@ -98,7 +97,7 @@ function PaymentFailureContent() {
         const err = await response.text()
         setError(err || 'Failed to retry payment')
       }
-    } catch (err) {
+    } catch {
       setError('Network error. Please try again.')
     } finally {
       setRetrying(false)
@@ -137,7 +136,7 @@ function PaymentFailureContent() {
           </h1>
 
           <p className="text-red-100 mt-1">
-            We couldn't process your payment
+            We couldn&apos;t process your payment
           </p>
         </div>
 

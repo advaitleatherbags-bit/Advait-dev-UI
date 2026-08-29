@@ -94,7 +94,7 @@ export default function Login() {
       } else {
         setError(data.message || 'Invalid email/mobile or password')
       }
-    } catch (err) {
+    } catch {
       setError('Network error. Please check your connection.')
     } finally {
       setLoading(false)
@@ -232,7 +232,7 @@ export default function Login() {
 
         <div className="mt-6 text-center">
           <p className="text-gray-600 text-sm">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href="/signup" className="text-[#C9A96E] hover:text-[#b8965a] font-semibold transition-colors">
               Sign Up
             </Link>

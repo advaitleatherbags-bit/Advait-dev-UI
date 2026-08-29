@@ -156,7 +156,7 @@ export default function About() {
                     </svg>
                   ))}
                 </div>
-                <p className="text-gray-600 italic text-sm sm:text-base">"{testimonial.content}"</p>
+                <p className="text-gray-600 italic text-sm sm:text-base">&quot;{testimonial.content}&quot;</p>
               </motion.div>
             ))}
           </div>
@@ -186,6 +186,7 @@ export default function About() {
                 className="relative aspect-square rounded-lg sm:rounded-xl overflow-hidden cursor-pointer group shadow-sm hover:shadow-xl transition-all duration-300"
               >
                 <Link href="#">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- Instagram image URLs are dynamic. */}
                   <img
                     src={post.url}
                     alt={`Instagram post ${index + 1}`}

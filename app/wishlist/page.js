@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { 
@@ -11,17 +11,13 @@ import {
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
+const getToken = () => localStorage.getItem('token')
 
 export default function Wishlist() {
   const [wishlistItems, setWishlistItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [userId, setUserId] = useState(null)
-
-  const getToken = () => {
-    if (typeof window === 'undefined') return null
-    return localStorage.getItem('token')
-  }
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -41,16 +37,8 @@ export default function Wishlist() {
     setLoading(false)
   }, [])
 
-  useEffect(() => {
-    if (userId) {
-      fetchWishlist()
-    } else {
-      setLoading(false)
-    }
-  }, [userId])
-
   // ✅ GET /api/UserLikes
-  const fetchWishlist = async () => {
+  const fetchWishlist = useCallback(async () => {
     setLoading(true)
     setError('')
     try {
@@ -68,12 +56,20 @@ export default function Wishlist() {
       } else {
         setError('Failed to load wishlist')
       }
-    } catch (err) {
+    } catch {
       setError('Network error. Please try again.')
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    if (userId) {
+      fetchWishlist()
+    } else {
+      setLoading(false)
+    }
+  }, [fetchWishlist, userId])
 
   // ✅ DELETE /api/UserLikes/{id}
   const removeFromWishlist = async (id, productTitle) => {
@@ -92,7 +88,7 @@ export default function Wishlist() {
       } else {
         alert('Failed to remove from wishlist')
       }
-    } catch (err) {
+    } catch {
       alert('Network error. Please try again.')
     }
   }
@@ -124,7 +120,7 @@ export default function Wishlist() {
       } else {
         alert('Failed to add to cart')
       }
-    } catch (error) {
+    } catch {
       alert('Network error. Please try again.')
     }
   }
@@ -202,6 +198,7 @@ export default function Wishlist() {
                 {/* Product Image */}
                 <Link href={`/products/${item.productId}`}>
                   <div className="relative h-48 bg-gray-50 overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- product images use runtime API URLs. */}
                     <img
                       src={item.productImageUrl || 'https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=400'}
                       alt={item.productTitle || 'Product'}

@@ -1,7 +1,6 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { StarIcon } from '@heroicons/react/24/solid'
 import Image from 'next/image'
 
 const testimonials = [
@@ -67,7 +66,7 @@ export default function Testimonials() {
                   <p className="text-sm text-gray-500">{testimonial.role}</p>
                 </div>
               </div>
-              <p className="text-gray-600 italic">"{testimonial.content}"</p>
+              <p className="text-gray-600 italic">&quot;{testimonial.content}&quot;</p>
             </motion.div>
           ))}
         </div>

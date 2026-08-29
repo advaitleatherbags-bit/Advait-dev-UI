@@ -75,7 +75,7 @@ function PaymentSuccessContent() {
           </h2>
 
           <p className="text-gray-500 text-sm mb-6">
-            We couldn't find your order details. Please contact support.
+            We couldn&apos;t find your order details. Please contact support.
           </p>
 
           <Link
@@ -158,7 +158,7 @@ function PaymentSuccessContent() {
 
           <div className="text-center">
             <p className="text-gray-600 text-sm">
-              We'll send you an email confirmation with your order details.
+              We&apos;ll send you an email confirmation with your order details.
             </p>
 
             <p className="text-gray-500 text-xs mt-1">
