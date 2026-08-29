@@ -9,20 +9,20 @@ export default function PaymentProcessing() {
   const [countdown, setCountdown] = useState(5)
 
   useEffect(() => {
-    // ✅ Get orderId from localStorage
     const savedOrderId = localStorage.getItem('currentOrderId')
     if (savedOrderId) {
       setOrderId(savedOrderId)
     }
 
-    // Countdown
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer)
-          // Redirect to status page after countdown
           if (savedOrderId) {
-            window.location.href = `/payment/status/${savedOrderId}`
+            // ✅ YAHAN CHANGE KARO
+            // Pehle: /payment/success/${savedOrderId}
+            // Same hi hai - dynamic route
+            window.location.href = `/payment/success/${savedOrderId}`
           } else {
             window.location.href = '/'
           }
@@ -51,17 +51,11 @@ export default function PaymentProcessing() {
           <ArrowPathIcon className="h-10 w-10 text-blue-600" />
         </motion.div>
 
-        <h1 className="text-2xl font-bold text-[#391F10] mb-2">
-          Redirecting to Secure Payment...
-        </h1>
-        <p className="text-gray-500 text-sm mb-4">
-          Please wait while we redirect you to the payment gateway.
-        </p>
+        <h1 className="text-2xl font-bold text-[#391F10] mb-2">Redirecting to Secure Payment...</h1>
+        <p className="text-gray-500 text-sm mb-4">Please wait while we redirect you to the payment gateway.</p>
 
         {orderId && (
-          <p className="text-xs text-gray-400">
-            Order ID: <span className="font-mono font-medium">#{orderId.slice(0, 8)}</span>
-          </p>
+          <p className="text-xs text-gray-400">Order ID: <span className="font-mono font-medium">#{orderId.slice(0, 8)}</span></p>
         )}
 
         <div className="mt-6 w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
@@ -73,13 +67,8 @@ export default function PaymentProcessing() {
           />
         </div>
 
-        <p className="text-xs text-gray-400 mt-4">
-          Redirecting in {countdown} seconds...
-        </p>
-
-        <p className="text-xs text-gray-400 mt-2">
-          Do not close this page.
-        </p>
+        <p className="text-xs text-gray-400 mt-4">Redirecting in {countdown} seconds...</p>
+        <p className="text-xs text-gray-400 mt-2">Do not close this page.</p>
       </motion.div>
     </div>
   )

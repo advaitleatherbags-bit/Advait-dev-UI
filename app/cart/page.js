@@ -31,11 +31,15 @@ export default function Cart() {
     if (typeof window === 'undefined') return
 
     const storedUser = localStorage.getItem('user')
+    console.log('🔍 Stored User:', storedUser)
 
     if (storedUser) {
       try {
         const user = JSON.parse(storedUser)
-        setUserId(user.userId || null)
+        // ✅ Multiple keys check
+        const id = user.userId || user.id || user.userID || user.user_Id || null
+        console.log('🔍 Extracted userId:', id)
+        setUserId(id)
       } catch (error) {
         console.error('Failed to parse user:', error)
         setUserId(null)
@@ -56,6 +60,7 @@ export default function Cart() {
     setLoading(true)
     setError('')
     try {
+      console.log('📦 Fetching cart for userId:', userId)
       const response = await fetch(`${API_BASE}/Cart/user/${userId}`, {
         headers: {
           'Authorization': `Bearer ${getToken()}`
@@ -269,7 +274,6 @@ export default function Cart() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16 bg-white min-h-screen">
-      {/* ✅ No Arrow Icon - Direct Title */}
       <div className="flex items-center gap-3 mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-[#391F10]">Shopping Cart</h1>
         <span className="text-sm text-gray-500">({cartItems.length} items)</span>

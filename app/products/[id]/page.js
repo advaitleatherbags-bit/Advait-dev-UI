@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import { HeartIcon, ShoppingBagIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid'
 import { motion } from 'framer-motion'
+import { useAuth } from '../../context/AuthContext'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 const getToken = () => localStorage.getItem('token')
@@ -24,9 +25,8 @@ export default function ProductDetail() {
   const [colors, setColors] = useState([])
   const [sizes, setSizes] = useState([])
 
-  // ✅ Get token from localStorage
-  const user = JSON.parse(localStorage.getItem('user') || '{}')
-  const userId = user.userId
+  const { user } = useAuth()
+  const userId = user?.userId || user?.id || null
 
   const fetchProduct = useCallback(async () => {
     setLoading(true)
@@ -97,6 +97,7 @@ export default function ProductDetail() {
 
       if (response.ok) {
         alert('Added to cart successfully!')
+        window.dispatchEvent(new Event('advit:commerce-updated'))
       } else {
         const err = await response.text()
         alert('Failed to add to cart: ' + err)
