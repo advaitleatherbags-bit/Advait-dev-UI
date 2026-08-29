@@ -10,15 +10,28 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Check if user is logged in on mount
-    const storedToken = localStorage.getItem('token')
-    const storedUser = localStorage.getItem('user')
-    
-    if (storedToken && storedUser) {
-      setToken(storedToken)
-      setUser(JSON.parse(storedUser))
+    const restoreSession = () => {
+      const storedToken = localStorage.getItem('token')
+      const storedUser = localStorage.getItem('user')
+
+      if (storedToken && storedUser) {
+        try {
+          setToken(storedToken)
+          setUser(JSON.parse(storedUser))
+        } catch {
+          setToken(null)
+          setUser(null)
+        }
+      } else {
+        setToken(null)
+        setUser(null)
+      }
+      setLoading(false)
     }
-    setLoading(false)
+
+    restoreSession()
+    window.addEventListener('advit:auth-updated', restoreSession)
+    return () => window.removeEventListener('advit:auth-updated', restoreSession)
   }, [])
 
   const login = (userData, authToken) => {

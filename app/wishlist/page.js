@@ -11,7 +11,10 @@ import {
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
-const getToken = () => localStorage.getItem('token')
+const getToken = () => {
+  if (typeof window === 'undefined') return null
+  return localStorage.getItem('token')
+}
 
 export default function Wishlist() {
   const [wishlistItems, setWishlistItems] = useState([])
@@ -23,11 +26,15 @@ export default function Wishlist() {
     if (typeof window === 'undefined') return
 
     const storedUser = localStorage.getItem('user')
+    console.log('🔍 Stored User:', storedUser)
 
     if (storedUser) {
       try {
         const user = JSON.parse(storedUser)
-        setUserId(user.userId || null)
+        // ✅ Multiple keys check
+        const id = user.userId || user.id || user.userID || user.user_Id || null
+        console.log('🔍 Extracted userId:', id)
+        setUserId(id)
       } catch (error) {
         console.error('Failed to parse stored user:', error)
         setUserId(null)
@@ -166,7 +173,6 @@ export default function Wishlist() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16 bg-white min-h-screen">
-      {/* ✅ No Arrow Icon - Direct Title */}
       <div className="flex items-center gap-3 mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-[#391F10]">My Wishlist</h1>
         <span className="text-sm text-gray-500">({wishlistItems.length} items)</span>
@@ -198,7 +204,6 @@ export default function Wishlist() {
                 {/* Product Image */}
                 <Link href={`/products/${item.productId}`}>
                   <div className="relative h-48 bg-gray-50 overflow-hidden">
-                    {/* eslint-disable-next-line @next/next/no-img-element -- product images use runtime API URLs. */}
                     <img
                       src={item.productImageUrl || 'https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=400'}
                       alt={item.productTitle || 'Product'}
@@ -212,7 +217,6 @@ export default function Wishlist() {
                         {item.productDiscountPercentage}% OFF
                       </span>
                     )}
-                    {/* Heart icon on image */}
                     <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm p-1.5 rounded-full shadow-md">
                       <HeartSolid className="h-4 w-4 text-red-500" />
                     </div>
@@ -243,7 +247,6 @@ export default function Wishlist() {
                     </div>
                   </div>
 
-                  {/* Color & Size if available */}
                   {(item.productColor || item.productSizes) && (
                     <div className="flex flex-wrap gap-2 mt-1">
                       {item.productColor && (
@@ -259,7 +262,6 @@ export default function Wishlist() {
                     </div>
                   )}
 
-                  {/* Action Buttons */}
                   <div className="flex gap-2 mt-3 pt-2 border-t border-gray-100">
                     <button
                       onClick={() => addToCart(item.productId, item.productPrice)}

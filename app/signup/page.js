@@ -103,12 +103,16 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL
         if (data.token) {
           localStorage.setItem('token', data.token)
           localStorage.setItem('user', JSON.stringify({
-            id: data.userid,
+            id: data.userId || data.userid,
+            userId: data.userId || data.userid,
             username: data.username,
             email: data.emailAddress,
+            emailAddress: data.emailAddress,
             mobile: data.mobileNumber,
             role: data.role
           }))
+          window.dispatchEvent(new Event('advit:auth-updated'))
+          window.dispatchEvent(new Event('advit:commerce-updated'))
         }
         // Redirect to home after 2 seconds
         setTimeout(() => {

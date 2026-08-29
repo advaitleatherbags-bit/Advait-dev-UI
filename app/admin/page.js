@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   PlusIcon, TrashIcon, PencilIcon, XMarkIcon,
@@ -12,6 +13,48 @@ import {
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
 export default function Admin() {
+  const router = useRouter()
+  
+  // ==================== ADMIN ROLE CHECK ====================
+  const [isAuthorized, setIsAuthorized] = useState(false)
+  const [authChecking, setAuthChecking] = useState(true)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const token = localStorage.getItem('token')
+    const storedUser = localStorage.getItem('user')
+
+    // ✅ No token → redirect to login
+    if (!token) {
+      router.push('/login')
+      return
+    }
+
+    // ✅ No user data → redirect to login
+    if (!storedUser) {
+      router.push('/login')
+      return
+    }
+
+    try {
+      const userData = JSON.parse(storedUser)
+      
+      // ✅ Check if user role is Admin
+      if (userData.role === 'Admin' || userData.role === 'admin') {
+        setIsAuthorized(true)
+      } else {
+        // ❌ Not admin → redirect to home
+        router.push('/')
+      }
+    } catch (error) {
+      console.error('Failed to parse user:', error)
+      router.push('/login')
+    } finally {
+      setAuthChecking(false)
+    }
+  }, [router])
+
   // ==================== STATE ====================
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
@@ -46,7 +89,11 @@ export default function Admin() {
   })
 
   // ==================== HELPERS ====================
-  const getToken = () => localStorage.getItem('token')
+  const getToken = () => {
+    if (typeof window === 'undefined') return null
+    return localStorage.getItem('token')
+  }
+  
   const headers = () => ({
     'Authorization': `Bearer ${getToken()}`
   })
@@ -67,25 +114,21 @@ export default function Admin() {
     }
   }
 
-  // ✅ FIXED: Create Product with FormData (for file upload)
   const createProduct = async (formDataObj) => {
     return fetch(`${API_BASE}/Products`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${getToken()}`
-        // ❌ NO 'Content-Type' - FormData handles it automatically
       },
       body: formDataObj
     })
   }
 
-  // ✅ FIXED: Update Product with FormData (for file upload)
   const updateProduct = async (id, formDataObj) => {
     return fetch(`${API_BASE}/Products/${id}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${getToken()}`
-        // ❌ NO 'Content-Type' - FormData handles it automatically
       },
       body: formDataObj
     })
@@ -174,9 +217,11 @@ export default function Admin() {
 
   // ==================== LOAD DATA ====================
   useEffect(() => {
-    fetchProducts()
-    fetchCategories()
-  }, [])
+    if (isAuthorized) {
+      fetchProducts()
+      fetchCategories()
+    }
+  }, [isAuthorized])
 
   // ==================== PRODUCT HANDLERS ====================
   const handleProductChange = (e) => {
@@ -234,7 +279,6 @@ export default function Admin() {
     return Object.keys(errors).length === 0
   }
 
-  // ✅ FIXED: Submit with FormData
   const handleProductSubmit = async (e) => {
     e.preventDefault()
     
@@ -253,7 +297,6 @@ export default function Admin() {
     setSuccess('')
 
     try {
-      // ✅ Create FormData for file upload
       const formDataObj = new FormData()
       formDataObj.append('CategoryId', formData.categoryId)
       formDataObj.append('Title', formData.title.trim())
@@ -266,7 +309,6 @@ export default function Admin() {
       formDataObj.append('Color', formData.color.trim())
       formDataObj.append('Sizes', formData.sizes.trim())
       
-      // ✅ Append image file if selected
       if (imageFile) {
         formDataObj.append('ImageFile', imageFile)
       }
@@ -428,6 +470,23 @@ export default function Admin() {
     return validationErrors[field] || ''
   }
 
+  // ==================== LOADING / UNAUTHORIZED ====================
+  if (authChecking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-[#391F10] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-gray-500 mt-4">Verifying access...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthorized) {
+    return null // Will redirect in useEffect
+  }
+
+  // ==================== MAIN RENDER ====================
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -477,6 +536,9 @@ export default function Admin() {
           </div>
         )}
 
+        {/* REST OF THE CODE - Category Form, Product Form, Tables */}
+        {/* ... Keep all the existing JSX for forms and tables ... */}
+        
         {/* Category Form */}
         <AnimatePresence>
           {showCategoryForm && (

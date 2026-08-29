@@ -15,7 +15,6 @@ export async function POST(request) {
     try {
       const response = await fetch(`${API_BASE}/orders/payu/success`, {
         method: 'POST',
-        // The ASP.NET endpoint uses [FromForm], so preserve PayU's form encoding.
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: rawPayUForm,
       })
@@ -30,12 +29,12 @@ export async function POST(request) {
       return Response.redirect(new URL('/payment/failure?reason=callback', request.url), 303)
     }
 
-    const redirectUrl = new URL('/payment/success', request.url)
-    redirectUrl.searchParams.set('orderId', orderId)
-    redirectUrl.searchParams.set('status', 'success')
-
-    // A callback arrives as POST. 303 makes the browser load the result page with GET.
+    // ✅ YAHAN CHANGE KARO - Dynamic URL
+    // Pehle: /payment/success?orderId=xxx
+    // Ab: /payment/success/xxx
+    const redirectUrl = new URL(`/payment/success/${orderId}`, request.url)
     return Response.redirect(redirectUrl, 303)
+
   } catch (error) {
     console.error('PayU success callback error:', error)
     return Response.redirect(new URL('/payment/success?status=unknown', request.url), 303)

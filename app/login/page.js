@@ -81,6 +81,8 @@ export default function Login() {
             role: data.role
           }))
           localStorage.setItem('expiresAt', data.expiresAt)
+          window.dispatchEvent(new Event('advit:auth-updated'))
+          window.dispatchEvent(new Event('advit:commerce-updated'))
           
           setSuccess(true)
           

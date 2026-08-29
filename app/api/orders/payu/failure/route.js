@@ -10,14 +10,11 @@ export async function POST(request) {
     const formData = await request.clone().formData()
     const data = Object.fromEntries(formData.entries())
     const rawPayUForm = await request.text()
-    // udf1 is the Order GUID supplied and signed by the backend. txnid identifies
-    // a PayU attempt and cannot be used by the retry-payment API.
     const orderId = data.udf1 || data.orderId || `ORD-${Date.now()}`
 
     try {
       const response = await fetch(`${API_BASE}/orders/payu/failure`, {
         method: 'POST',
-        // The ASP.NET endpoint uses [FromForm], so preserve PayU's form encoding.
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: rawPayUForm,
       })
@@ -31,9 +28,12 @@ export async function POST(request) {
       return Response.redirect(new URL('/payment/failure?reason=callback', request.url), 303)
     }
 
-    const redirectUrl = new URL('/payment/failure', request.url)
-    redirectUrl.searchParams.set('orderId', orderId)
+    // ✅ YAHAN CHANGE KARO - Dynamic URL
+    // Pehle: /payment/failure?orderId=xxx
+    // Ab: /payment/failure/xxx
+    const redirectUrl = new URL(`/payment/failure/${orderId}`, request.url)
     return Response.redirect(redirectUrl, 303)
+
   } catch (error) {
     console.error('PayU failure callback error:', error)
     return Response.redirect(new URL('/payment/failure', request.url), 303)

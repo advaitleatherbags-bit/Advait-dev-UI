@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { HeartIcon, ShoppingBagIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useAuth } from '../context/AuthContext'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
@@ -12,7 +13,7 @@ export default function ProductCard({ product }) {
   const [isWishlisted, setIsWishlisted] = useState(false)
   const [addingToCart, setAddingToCart] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [userId, setUserId] = useState(null)
+  const { user } = useAuth()
 
   const productId = product?.productId || product?.id
   const productName = product?.title || product?.name
@@ -21,22 +22,11 @@ export default function ProductCard({ product }) {
   const productCategory = product?.categoryName || product?.category
   const discount = product?.discountPercentage || 0
   const label = product?.label || product?.badge
+  const userId = user?.userId || user?.id || null
 
   const getToken = () => localStorage.getItem('token')
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user')
-
-    if (storedUser) {
-      try {
-        const user = JSON.parse(storedUser)
-        setUserId(user.userId || null)
-      } catch (error) {
-        console.error('Failed to parse stored user:', error)
-        setUserId(null)
-      }
-    }
-
     setLoading(false)
   }, [])
 
@@ -94,6 +84,7 @@ export default function ProductCard({ product }) {
 
       if (response.ok) {
         setIsWishlisted(true)
+        window.dispatchEvent(new Event('advit:commerce-updated'))
       } else {
         alert('Failed to add to wishlist')
       }
@@ -128,6 +119,7 @@ export default function ProductCard({ product }) {
 
           if (deleteResponse.ok) {
             setIsWishlisted(false)
+            window.dispatchEvent(new Event('advit:commerce-updated'))
           } else {
             alert('Failed to remove from wishlist')
           }
@@ -182,6 +174,7 @@ export default function ProductCard({ product }) {
 
       if (response.ok) {
         alert('Added to cart successfully!')
+        window.dispatchEvent(new Event('advit:commerce-updated'))
       } else {
         alert('Failed to add to cart')
       }
