@@ -246,10 +246,10 @@ export default function Navbar() {
           <div className="flex items-center justify-center gap-3 max-w-7xl mx-auto">
             <ExclamationTriangleIcon className="h-5 w-5 text-white animate-pulse" />
             <span className="text-sm font-medium">
-              ⚠️ We're experiencing technical difficulties. Some features may be unavailable.
+              ⚠️ We&apos;re experiencing technical difficulties. Some features may be unavailable.
             </span>
             <span className="text-xs bg-white/20 px-3 py-1 rounded-full font-semibold">
-              We'll be back soon!
+              We&apos;ll be back soon!
             </span>
           </div>
         </motion.div>

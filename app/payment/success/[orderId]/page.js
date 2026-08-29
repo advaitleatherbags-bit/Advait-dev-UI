@@ -146,7 +146,7 @@ export default function PaymentSuccess() {
           </div>
 
           <div className="text-center">
-            <p className="text-gray-600 text-sm">We'll send you an email confirmation with your order details.</p>
+            <p className="text-gray-600 text-sm">We&apos;ll send you an email confirmation with your order details.</p>
             <p className="text-gray-500 text-xs mt-1">Your order will be delivered within 3-5 business days</p>
           </div>
 

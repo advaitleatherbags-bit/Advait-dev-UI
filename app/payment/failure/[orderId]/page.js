@@ -134,7 +134,7 @@ export default function PaymentFailure() {
             <XCircleIcon className="h-12 w-12 text-white" />
           </motion.div>
           <h1 className="text-2xl font-bold text-white">Payment Failed!</h1>
-          <p className="text-red-100 mt-1">We couldn't process your payment</p>
+          <p className="text-red-100 mt-1">We couldn&apos;t process your payment</p>
         </div>
 
         <div className="p-6 space-y-6">
