@@ -202,9 +202,9 @@ export default function Login() {
               />
               <span className="ml-2 text-sm text-gray-600">Remember me</span>
             </label>
-            <Link href="#" className="text-sm text-[#C9A96E] hover:text-[#b8965a] transition-colors">
-              Forgot password?
-            </Link>
+          <Link href="/forgot-password" className="text-sm text-[#C9A96E] hover:text-[#b8965a] transition-colors">
+  Forgot password?
+</Link>
           </div>
 
           {/* Submit Button */}
