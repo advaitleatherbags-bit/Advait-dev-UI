@@ -3,57 +3,37 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useAuth } from '../context/AuthContext'
 import { 
   PlusIcon, TrashIcon, PencilIcon, XMarkIcon,
   PhotoIcon, FolderIcon, TagIcon,
   CheckCircleIcon, ExclamationCircleIcon,
-  CloudArrowUpIcon
+  CloudArrowUpIcon, ShoppingBagIcon
 } from '@heroicons/react/24/outline'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
 export default function Admin() {
   const router = useRouter()
+  const { user, loading: authLoading } = useAuth()
   
   // ==================== ADMIN ROLE CHECK ====================
   const [isAuthorized, setIsAuthorized] = useState(false)
   const [authChecking, setAuthChecking] = useState(true)
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (authLoading) return
 
-    const token = localStorage.getItem('token')
-    const storedUser = localStorage.getItem('user')
-
-    // ✅ No token → redirect to login
-    if (!token) {
+    if (!user) {
       router.push('/login')
-      return
+    } else if (user.role === 'Admin' || user.role === 'admin') {
+      setIsAuthorized(true)
+    } else {
+      router.push('/')
     }
 
-    // ✅ No user data → redirect to login
-    if (!storedUser) {
-      router.push('/login')
-      return
-    }
-
-    try {
-      const userData = JSON.parse(storedUser)
-      
-      // ✅ Check if user role is Admin
-      if (userData.role === 'Admin' || userData.role === 'admin') {
-        setIsAuthorized(true)
-      } else {
-        // ❌ Not admin → redirect to home
-        router.push('/')
-      }
-    } catch (error) {
-      console.error('Failed to parse user:', error)
-      router.push('/login')
-    } finally {
-      setAuthChecking(false)
-    }
-  }, [router])
+    setAuthChecking(false)
+  }, [authLoading, router, user])
 
   // ==================== STATE ====================
   const [products, setProducts] = useState([])
@@ -87,6 +67,11 @@ export default function Admin() {
     sizes: '',
     imageUrl: ''
   })
+
+  const [orders, setOrders] = useState([])
+  const [ordersLoading, setOrdersLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState('orders')
+  const [pushingOrderId, setPushingOrderId] = useState(null)
 
   // ==================== HELPERS ====================
   const getToken = () => {
@@ -194,6 +179,71 @@ export default function Admin() {
     return fetch(`${API_BASE}/Categories/${id}`, { headers: headers() })
   }
 
+  // ==================== ORDERS API ====================
+  const fetchOrders = async () => {
+    setOrdersLoading(true)
+    setError('')
+    try {
+      const res = await fetch(`${API_BASE}/orders`, { headers: headers() })
+      if (res.ok) {
+        const data = await res.json()
+        setOrders(Array.isArray(data) ? data : [])
+      } else {
+        setError('Failed to fetch orders')
+      }
+    } catch (err) {
+      setError('Failed to fetch orders')
+    } finally {
+      setOrdersLoading(false)
+    }
+  }
+
+const handleShiprocketPush = async (order) => {
+  if (!confirm('Are you sure you want to push this order to Shiprocket?')) return
+
+  setPushingOrderId(order.orderId)
+  setError('')
+  setSuccess('')
+
+  try {
+    const shiprocketData = {
+      customerName: order.customerName,
+      email: order.email,
+      phone: order.phone,
+      address: order.address,
+      city: order.city,
+      state: order.state,
+      pincode: order.pincode,
+      pickupLocation: 'home'
+    }
+
+    const res = await fetch(
+      `${API_BASE}/orders/${order.orderId}/shiprocket-push`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers()
+        },
+        body: JSON.stringify(shiprocketData)
+      }
+    )
+
+    if (res.ok) {
+      setSuccess('Order successfully pushed to Shiprocket!')
+      fetchOrders()
+      setTimeout(() => setSuccess(''), 3000)
+    } else {
+      const err = await res.json()
+      setError(err.message || 'Failed to push order to Shiprocket')
+    }
+  } catch (err) {
+    setError('Network error. Failed to push order.')
+  } finally {
+    setPushingOrderId(null)
+  }
+}
+
   // ==================== IMAGE UPLOAD ====================
   const handleImageSelect = (e) => {
     const file = e.target.files[0]
@@ -216,12 +266,13 @@ export default function Admin() {
   }
 
   // ==================== LOAD DATA ====================
-  useEffect(() => {
-    if (isAuthorized) {
-      fetchProducts()
-      fetchCategories()
-    }
-  }, [isAuthorized])
+useEffect(() => {
+  if (!isAuthorized) return
+
+  fetchProducts()
+  fetchCategories()
+  fetchOrders()
+}, [isAuthorized])
 
   // ==================== PRODUCT HANDLERS ====================
   const handleProductChange = (e) => {
@@ -494,7 +545,7 @@ export default function Admin() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-[#391F10]">Admin Panel</h1>
-            <p className="text-gray-500 text-sm">Manage products & categories</p>
+            <p className="text-gray-500 text-sm">Manage products, categories & orders</p>
           </div>
           <div className="flex flex-wrap gap-3">
             <button
@@ -520,6 +571,52 @@ export default function Admin() {
               {showCategoryForm ? 'Close Category' : 'Add Category'}
             </button>
           </div>
+        </div>
+
+        {/* Tabs Control */}
+        <div className="flex border-b border-gray-200 mb-6 gap-2">
+          <button
+            onClick={() => {
+              setActiveTab('products')
+              setShowProductForm(false)
+              setShowCategoryForm(false)
+            }}
+            className={`pb-3 px-4 text-sm font-medium border-b-2 transition-all ${
+              activeTab === 'products'
+                ? 'border-[#391F10] text-[#391F10]'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Products ({products.length})
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab('categories')
+              setShowProductForm(false)
+              setShowCategoryForm(false)
+            }}
+            className={`pb-3 px-4 text-sm font-medium border-b-2 transition-all ${
+              activeTab === 'categories'
+                ? 'border-[#102A39] text-[#102A39]'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Categories ({categories.length})
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab('orders')
+              setShowProductForm(false)
+              setShowCategoryForm(false)
+            }}
+            className={`pb-3 px-4 text-sm font-medium border-b-2 transition-all ${
+              activeTab === 'orders'
+                ? 'border-[#C9A96E] text-[#C9A96E]'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Orders ({orders.length})
+          </button>
         </div>
 
         {/* Messages */}
@@ -883,7 +980,8 @@ export default function Admin() {
         </AnimatePresence>
 
         {/* Categories Table */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+        {activeTab === 'categories' && (
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
           <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
             <h3 className="font-semibold text-[#391F10] flex items-center gap-2">
               <FolderIcon className="h-5 w-5" />
@@ -942,8 +1040,11 @@ export default function Admin() {
           </div>
         </div>
 
+        )}
+
         {/* Products Table */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        {activeTab === 'products' && (
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
             <h3 className="font-semibold text-[#391F10] flex items-center gap-2">
               <PhotoIcon className="h-5 w-5" />
@@ -1030,6 +1131,102 @@ export default function Admin() {
             </table>
           </div>
         </div>
+        )}
+
+        {/* Orders Table */}
+        {activeTab === 'orders' && (
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="font-semibold text-[#391F10] flex items-center gap-2">
+                <ShoppingBagIcon className="h-5 w-5" />
+                Orders ({orders.length})
+              </h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order No</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shiprocket Details</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ordersLoading ? (
+                    <tr><td colSpan="7" className="px-4 py-8 text-center text-gray-500">Loading orders...</td></tr>
+                  ) : orders.length === 0 ? (
+                    <tr><td colSpan="7" className="px-4 py-8 text-center text-gray-500">No orders found</td></tr>
+                  ) : (
+                    orders.map((order) => (
+                      <tr key={order.orderId} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3 text-sm font-bold text-gray-800">{order.customerName|| 'N/A'}</td>
+                        <td className="px-4 py-3 text-sm font-bold text-gray-800">{order.orderNumber}</td>
+                        <td className="px-4 py-3 text-sm text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</td>
+                        <td className="px-4 py-3 text-sm font-medium text-[#391F10]">INR {order.totalAmount.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-sm text-gray-500">
+                          <div className="space-y-1">
+                            {order.items.map((item) => (
+                              <div key={item.productId} className="text-xs">
+                                <span className="font-semibold">{item.productTitle}</span> (x{item.quantity})
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
+                            order.orderStatus === 'Shipped' ? 'bg-green-100 text-green-800 border-green-200' :
+                            order.orderStatus === 'Placed' ? 'bg-purple-100 text-purple-800 border-purple-200' :
+                            order.orderStatus === 'Confirmed' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                            order.orderStatus === 'Pending' ? 'bg-amber-100 text-amber-800 border-amber-200' :
+                            'bg-red-100 text-red-800 border-red-200'
+                          }`}>
+                            {order.orderStatus}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-xs text-gray-500 space-y-0.5">
+                          {order.shiprocketOrderId ? (
+                            <div>ID: <span className="font-semibold">{order.shiprocketOrderId}</span></div>
+                          ) : null}
+                          {order.shiprocketShipmentId ? (
+                            <div>Shipment: <span className="font-semibold">{order.shiprocketShipmentId}</span></div>
+                          ) : null}
+                          {!order.shiprocketOrderId && !order.shiprocketShipmentId ? (
+                            <span className="text-gray-400 italic">Not pushed</span>
+                          ) : null}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {!order.shiprocketOrderId && !order.shiprocketShipmentId ? (
+                            <button
+                              onClick={() => handleShiprocketPush(order)}
+                              disabled={pushingOrderId === order.orderId}
+                              className="bg-[#C9A96E] hover:bg-[#b8965a] disabled:bg-gray-300 text-[#391F10] px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-all inline-flex items-center gap-1"
+                            >
+                              {pushingOrderId === order.orderId ? (
+                                <>
+                                  <span className="w-3.5 h-3.5 border-2 border-[#391F10] border-t-transparent rounded-full animate-spin" />
+                                  Pushing...
+                                </>
+                              ) : (
+                                'Confirm'
+                              )}
+                            </button>
+                          ) : (
+                            <span className="text-green-600 text-xs font-semibold">Pushed</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
