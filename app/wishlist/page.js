@@ -9,6 +9,7 @@ import {
   ShoppingBagIcon
 } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid'
+import { useAuth } from '../context/AuthContext'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 const getToken = () => {
@@ -17,34 +18,12 @@ const getToken = () => {
 }
 
 export default function Wishlist() {
+  const { user } = useAuth()
   const [wishlistItems, setWishlistItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [userId, setUserId] = useState(null)
+  const userId = user?.userId || user?.id || user?.userID || user?.user_Id || null
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-
-    const storedUser = localStorage.getItem('user')
-    console.log('🔍 Stored User:', storedUser)
-
-    if (storedUser) {
-      try {
-        const user = JSON.parse(storedUser)
-        // ✅ Multiple keys check
-        const id = user.userId || user.id || user.userID || user.user_Id || null
-        console.log('🔍 Extracted userId:', id)
-        setUserId(id)
-      } catch (error) {
-        console.error('Failed to parse stored user:', error)
-        setUserId(null)
-      }
-    }
-
-    setLoading(false)
-  }, [])
-
-  // ✅ GET /api/UserLikes
   const fetchWishlist = useCallback(async () => {
     setLoading(true)
     setError('')

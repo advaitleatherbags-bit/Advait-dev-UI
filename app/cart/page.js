@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
+import { useAuth } from '../context/AuthContext'
 import { 
   TrashIcon, 
   PlusIcon, 
@@ -14,13 +15,14 @@ import {
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
 export default function Cart() {
+  const { user } = useAuth()
   const [cartItems, setCartItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [updating, setUpdating] = useState(false)
   const [total, setTotal] = useState(0)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
-  const [userId, setUserId] = useState(null)
+  const userId = user?.userId || user?.id || user?.userID || user?.user_Id || null
 
   const getToken = () => {
     if (typeof window === 'undefined') return null
@@ -28,30 +30,10 @@ export default function Cart() {
   }
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
-
-    const storedUser = localStorage.getItem('user')
-    console.log('🔍 Stored User:', storedUser)
-
-    if (storedUser) {
-      try {
-        const user = JSON.parse(storedUser)
-        // ✅ Multiple keys check
-        const id = user.userId || user.id || user.userID || user.user_Id || null
-        console.log('🔍 Extracted userId:', id)
-        setUserId(id)
-      } catch (error) {
-        console.error('Failed to parse user:', error)
-        setUserId(null)
-      }
-    }
-
-    setLoading(false)
-  }, [])
-
-  useEffect(() => {
     if (userId) {
       fetchCart()
+    } else {
+      setLoading(false)
     }
   }, [userId])
 

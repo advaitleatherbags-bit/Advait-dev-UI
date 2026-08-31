@@ -155,11 +155,11 @@ export default function PaymentSuccess() {
               <HomeIcon className="h-5 w-5" />
               Continue Shopping
             </Link>
-            <Link href="/orders" className="w-full border-2 border-gray-200 text-gray-700 px-6 py-3 rounded-xl hover:bg-gray-50 transition-all duration-300 flex items-center justify-center gap-2 font-medium">
+            <Link href="/profile" className="w-full border-2 border-gray-200 text-gray-700 px-6 py-3 rounded-xl hover:bg-gray-50 transition-all duration-300 flex items-center justify-center gap-2 font-medium">
               <ShoppingBagIcon className="h-5 w-5" />
               View Orders
             </Link>
-          </div>
+          </div>s
         </div>
 
         <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 text-center">

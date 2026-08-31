@@ -70,16 +70,9 @@ export default function Login() {
       const data = await response.json()
 
       if (response.ok) {
-        // ✅ Save token and user data in localStorage
+        // Keep only the token locally; AuthProvider loads the profile from /Auth/me.
         if (data.token) {
           localStorage.setItem('token', data.token)
-          localStorage.setItem('user', JSON.stringify({
-            userId: data.userId,
-            username: data.username,
-            emailAddress: data.emailAddress,
-            mobileNumber: data.mobileNumber,
-            role: data.role
-          }))
           localStorage.setItem('expiresAt', data.expiresAt)
           window.dispatchEvent(new Event('advit:auth-updated'))
           window.dispatchEvent(new Event('advit:commerce-updated'))
@@ -88,7 +81,11 @@ export default function Login() {
           
           // Redirect to home after 1.5 seconds
           setTimeout(() => {
-            router.push('/')
+            if(data.role === 'Admin'){
+              router.push('/admin')
+            } else {
+              router.push('/')
+            }
           }, 1500)
         } else {
           setError('Invalid response from server')

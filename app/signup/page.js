@@ -13,7 +13,9 @@ import {
   EyeIcon,
   EyeSlashIcon,
   CheckCircleIcon,
-  ExclamationCircleIcon
+  ExclamationCircleIcon,
+  MapPinIcon,
+  BuildingOfficeIcon
 } from '@heroicons/react/24/outline'
 
 export default function SignUp() {
@@ -24,7 +26,10 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL
     emailAddress: '',
     mobileNumber: '',
     password: '',
-    shippingAddress: ''
+    Address: '',
+    State: '',
+    City: '',
+    Pincode: ''
   })
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -65,8 +70,20 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL
       setError('Password must be at least 6 characters')
       return false
     }
-    if (!formData.shippingAddress.trim()) {
-      setError('Shipping address is required')
+    if (!formData.Address.trim()) {
+      setError('Address is required')
+      return false
+    }
+    if (!formData.State.trim()) {
+      setError('State is required')
+      return false
+    }
+    if (!formData.City.trim()) {
+      setError('City is required')
+      return false
+    }
+    if (!formData.Pincode.trim()) {
+      setError('Pincode is required')
       return false
     }
     return true
@@ -91,7 +108,10 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL
           emailAddress: formData.emailAddress,
           mobileNumber: formData.mobileNumber,
           password: formData.password,
-          shippingAddress: formData.shippingAddress
+          Address: formData.Address,
+          State: formData.State,
+          City: formData.City,
+          Pincode: formData.Pincode
         })
       })
 
@@ -99,18 +119,9 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
       if (response.ok) {
         setSuccess(true)
-        // Store token in localStorage or sessionStorage
+        // Keep only the token locally; AuthProvider loads the profile from /Auth/me.
         if (data.token) {
           localStorage.setItem('token', data.token)
-          localStorage.setItem('user', JSON.stringify({
-            id: data.userId || data.userid,
-            userId: data.userId || data.userid,
-            username: data.username,
-            email: data.emailAddress,
-            emailAddress: data.emailAddress,
-            mobile: data.mobileNumber,
-            role: data.role
-          }))
           window.dispatchEvent(new Event('advit:auth-updated'))
           window.dispatchEvent(new Event('advit:commerce-updated'))
         }
@@ -260,17 +271,77 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL
           {/* Shipping Address */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Shipping Address *
+              Address *
             </label>
             <div className="relative">
               <HomeIcon className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
               <textarea
-                name="shippingAddress"
-                value={formData.shippingAddress}
+                name="Address"
+                value={formData.Address}
                 onChange={handleChange}
                 rows="2"
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
                 placeholder="Enter shipping address"
+                required
+                disabled={loading || success}
+              />
+            </div>
+          </div>
+          {/* State */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              State *
+            </label>
+            <div className="relative">
+              <MapPinIcon
+               className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                name="State"
+                value={formData.State}
+                onChange={handleChange}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
+                placeholder="Enter state"
+                required
+                disabled={loading || success}
+              />
+            </div>
+          </div>
+
+          {/* City */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              City *
+            </label>
+            <div className="relative">
+              <BuildingOfficeIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                name="City"
+                value={formData.City}
+                onChange={handleChange}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
+                placeholder="Enter city"
+                required
+                disabled={loading || success}
+              />
+            </div>
+          </div>
+
+          {/* Pincode */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Pincode *
+            </label>
+            <div className="relative">
+              <LockClosedIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                name="Pincode"
+                value={formData.Pincode}
+                onChange={handleChange}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
+                placeholder="Enter pincode"
                 required
                 disabled={loading || success}
               />
@@ -296,7 +367,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL
             ) : success ? (
               'Account Created!'
             ) : (
-              'Create Account'
+              'Create Account'  
             )}
           </motion.button>
         </form>

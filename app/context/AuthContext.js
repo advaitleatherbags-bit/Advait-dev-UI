@@ -10,23 +10,47 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const restoreSession = () => {
+    const restoreSession = async () => {
       const storedToken = localStorage.getItem('token')
-      const storedUser = localStorage.getItem('user')
+      // Clear profile data saved by earlier versions of the application.
+      localStorage.removeItem('user')
 
-      if (storedToken && storedUser) {
-        try {
-          setToken(storedToken)
-          setUser(JSON.parse(storedUser))
-        } catch {
-          setToken(null)
-          setUser(null)
-        }
-      } else {
+      if (!storedToken) {
         setToken(null)
         setUser(null)
+        setLoading(false)
+        return
       }
-      setLoading(false)
+
+      setLoading(true)
+      setToken(storedToken)
+
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/Auth/me`, {
+          headers: {
+            Authorization: `Bearer ${storedToken}`,
+          },
+        })
+
+        if (response.status === 401 || response.status === 403) {
+          localStorage.removeItem('token')
+          localStorage.removeItem('expiresAt')
+          setToken(null)
+          setUser(null)
+          return
+        }
+
+        if (!response.ok) {
+          throw new Error('Unable to restore session')
+        }
+
+        setUser(await response.json())
+      } catch {
+        // Keep the token for a later retry when Auth/me is temporarily unavailable.
+        setUser(null)
+      } finally {
+        setLoading(false)
+      }
     }
 
     restoreSession()
@@ -34,16 +58,13 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener('advit:auth-updated', restoreSession)
   }, [])
 
-  const login = (userData, authToken) => {
+  const login = (authToken) => {
     localStorage.setItem('token', authToken)
-    localStorage.setItem('user', JSON.stringify(userData))
-    setToken(authToken)
-    setUser(userData)
+    window.dispatchEvent(new Event('advit:auth-updated'))
   }
 
   const logout = () => {
     localStorage.removeItem('token')
-    localStorage.removeItem('user')
     localStorage.removeItem('expiresAt')
     setToken(null)
     setUser(null)

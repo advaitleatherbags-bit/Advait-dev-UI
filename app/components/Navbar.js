@@ -14,6 +14,7 @@ import {
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useAuth } from '../context/AuthContext'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
@@ -29,13 +30,12 @@ const navLinks = [
 export default function Navbar() {
   const router = useRouter()
   const pathname = usePathname()
+  const { user, loading, logout } = useAuth()
   
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [cartCount, setCartCount] = useState(0)
   const [wishlistCount, setWishlistCount] = useState(0)
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
   const [apiError, setApiError] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
 
@@ -44,60 +44,7 @@ export default function Navbar() {
     return localStorage.getItem('token')
   }
 
-  // ✅ GET /api/Auth/me - Fetch user details with error handling
-  const fetchUserDetails = async () => {
-    const token = getToken()
-    
-    // Pehle localStorage se user data show karo
-    if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('user')
-      if (storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser)
-          setUser(parsedUser)
-        } catch (e) {
-          console.error('Failed to parse stored user:', e)
-        }
-      }
-    }
-
-    if (!token) {
-      setUser(null)
-      setLoading(false)
-      return
-    }
-
-    try {
-      const response = await fetch(`${API_BASE}/Auth/me`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setUser(data)
-        localStorage.setItem('user', JSON.stringify(data))
-        setApiError(false)
-      } else if (response.status === 401 || response.status === 403) {
-        // Only an explicit authorization response can end a saved session.
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        setUser(null)
-        setApiError(false)
-      } else {
-        // Do not log the customer out for a temporary/profile API error.
-        setApiError(true)
-      }
-    } catch (error) {
-      console.error('Failed to fetch user details:', error)
-      // ✅ API Error - Show fallback UI
-      setApiError(true)
-      // Keep localStorage data if available
-    } finally {
-      setLoading(false)
-    }
-  }
+  // User details are loaded by AuthProvider from /Auth/me.
 
   // ✅ Fetch cart count with error handling
   const fetchCartCount = async () => {
@@ -160,9 +107,7 @@ export default function Navbar() {
 
   // ✅ Logout
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    setUser(null)
+    logout()
     setCartCount(0)
     setWishlistCount(0)
     setShowDropdown(false)
@@ -172,10 +117,6 @@ export default function Navbar() {
 
   // ==================== USE EFFECTS ====================
   
-  useEffect(() => {
-    fetchUserDetails()
-  }, [])
-
   useEffect(() => {
     if (user) {
       fetchCartCount()
@@ -199,8 +140,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const refreshBadges = () => {
-      // Re-read local storage after sign in/payment return before refreshing counts.
-      fetchUserDetails()
+      // Refresh counts after sign in or payment return.
       fetchCartCount()
       fetchWishlistCount()
     }
@@ -383,19 +323,22 @@ export default function Navbar() {
                           <p className="text-xs text-gray-500 truncate">
                             {user.emailAddress || ''}
                           </p>
-                          {user.role && (
-                            <span className="inline-block mt-1 text-[10px] px-2 py-0.5 bg-[#C9A96E]/10 text-[#C9A96E] rounded-full font-medium">
-                              {user.role}
-                            </span>
-                          )}
                         </div>
 
                         <div className="py-1">
+                          <Link
+                            href="/profile"
+                            onClick={() => setShowDropdown(false)}
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                          >
+                            <UserIcon className="h-4 w-4 text-gray-400" />
+                            My Profile / Orders
+                          </Link>
                           {user.role === 'Admin' || user.role === 'admin' ? (
                             <Link
                               href="/admin"
                               onClick={() => setShowDropdown(false)}
-                              className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#C9A96E] hover:bg-gray-50 transition-colors font-medium"
+                              className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#C9A96E] hover:bg-gray-50 transition-colors font-medium border-t border-gray-100"
                             >
                               <UserIcon className="h-4 w-4 text-[#C9A96E]" />
                               Admin Panel
@@ -472,6 +415,19 @@ export default function Navbar() {
                     {link.name}
                   </Link>
                 ))}
+                {user && (user.role === 'Admin' || user.role === 'admin') && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setIsOpen(false)}
+                    className={`block px-4 py-3 rounded-lg transition-all duration-300 ${
+                      pathname === '/admin'
+                        ? 'bg-[#391F10] text-[#C9A96E]'
+                        : 'text-[#C9A96E] hover:bg-[#391F10]'
+                    }`}
+                  >
+                    Admin Panel
+                  </Link>
+                )}
 
                 <div className="flex items-center space-x-4 pt-4 border-t border-white/10">
 
@@ -507,10 +463,14 @@ export default function Navbar() {
                   {loading ? (
                     <div className="flex-1 bg-white/5 rounded-full h-9 animate-pulse" />
                   ) : user ? (
-                    <div className="flex-1 bg-[#C9A96E]/10 text-white px-4 py-2.5 rounded-full text-center font-medium text-sm flex items-center justify-center gap-2">
+                    <Link
+                      href="/profile"
+                      onClick={() => setIsOpen(false)}
+                      className="flex-1 bg-[#C9A96E]/10 text-white px-4 py-2.5 rounded-full text-center font-medium text-sm flex items-center justify-center gap-2"
+                    >
                       <UserIcon className="h-4 w-4 text-[#C9A96E]" />
                       {user.username || 'User'}
-                    </div>
+                    </Link>
                   ) : (
                     <Link
                       href="/login"
