@@ -50,8 +50,12 @@ export default function Admin() {
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
   const [validationErrors, setValidationErrors] = useState({})
-  const [imageFile, setImageFile] = useState(null)
-  const [imagePreview, setImagePreview] = useState('')
+  const [imageFiles, setImageFiles] = useState([])
+  const [imagePreviews, setImagePreviews] = useState([])
+  const [existingImages, setExistingImages] = useState([])
+  const [deletedImageIds, setDeletedImageIds] = useState([])
+  const [primaryImageId, setPrimaryImageId] = useState(null)
+  const [primaryNewIndex, setPrimaryNewIndex] = useState(0)
   const fileInputRef = useRef(null)
 
   const [formData, setFormData] = useState({
@@ -63,8 +67,6 @@ export default function Admin() {
     label: '',
     description: '',
     productDetails: '',
-    color: '',
-    sizes: '',
     imageUrl: ''
   })
 
@@ -230,9 +232,7 @@ const handleShiprocketPush = async (order) => {
     )
 
     if (res.ok) {
-      setSuccess('Order successfully pushed to Shiprocket!')
       fetchOrders()
-      setTimeout(() => setSuccess(''), 3000)
     } else {
       const err = await res.json()
       setError(err.message || 'Failed to push order to Shiprocket')
@@ -246,23 +246,59 @@ const handleShiprocketPush = async (order) => {
 
   // ==================== IMAGE UPLOAD ====================
   const handleImageSelect = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      setImageFile(file)
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
+
+    setImageFiles(prev => [...prev, ...files])
+
+    files.forEach(file => {
       const reader = new FileReader()
       reader.onloadend = () => {
-        setImagePreview(reader.result)
+        setImagePreviews(prev => [
+          ...prev,
+          {
+            file,
+            name: file.name,
+            url: reader.result,
+            color: '',
+            size: ''
+          }
+        ])
       }
       reader.readAsDataURL(file)
-    }
-  }
+    })
 
-  const removeImage = () => {
-    setImageFile(null)
-    setImagePreview('')
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
+  }
+
+  const removeNewImage = (indexToRemove) => {
+    setImageFiles(prev => prev.filter((_, i) => i !== indexToRemove))
+    setImagePreviews(prev => prev.filter((_, i) => i !== indexToRemove))
+    if (primaryNewIndex === indexToRemove) {
+      setPrimaryNewIndex(0)
+    } else if (primaryNewIndex > indexToRemove) {
+      setPrimaryNewIndex(prev => prev - 1)
+    }
+  }
+
+  const removeExistingImage = (imageId) => {
+    if (imageId !== 'legacy') {
+      setDeletedImageIds(prev => [...prev, imageId])
+    }
+    setExistingImages(prev => prev.filter(img => img.productImageId !== imageId))
+    if (primaryImageId === imageId) {
+      setPrimaryImageId(null)
+    }
+  }
+
+  const updateNewImageMeta = (index, field, value) => {
+    setImagePreviews(prev => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)))
+  }
+
+  const updateExistingImageMeta = (imageId, field, value) => {
+    setExistingImages(prev => prev.map(item => (item.productImageId === imageId ? { ...item, [field]: value } : item)))
   }
 
   // ==================== LOAD DATA ====================
@@ -298,12 +334,14 @@ useEffect(() => {
       label: '',
       description: '',
       productDetails: '',
-      color: '',
-      sizes: '',
       imageUrl: ''
     })
-    setImageFile(null)
-    setImagePreview('')
+    setImageFiles([])
+    setImagePreviews([])
+    setExistingImages([])
+    setDeletedImageIds([])
+    setPrimaryImageId(null)
+    setPrimaryNewIndex(0)
     setValidationErrors({})
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
@@ -321,8 +359,6 @@ useEffect(() => {
     if (!formData.subtitle?.trim()) errors.subtitle = 'Subtitle is required'
     if (!formData.description?.trim()) errors.description = 'Description is required'
     if (!formData.productDetails?.trim()) errors.productDetails = 'ProductDetails is required'
-    if (!formData.color?.trim()) errors.color = 'Color is required'
-    if (!formData.sizes?.trim()) errors.sizes = 'Sizes is required'
     if (!formData.label) errors.label = 'Label is required'
     if (!formData.price || formData.price <= 0) errors.price = 'Price is required and must be greater than 0'
     
@@ -357,11 +393,49 @@ useEffect(() => {
       formDataObj.append('Label', formData.label)
       formDataObj.append('Description', formData.description.trim())
       formDataObj.append('ProductDetails', formData.productDetails.trim())
-      formDataObj.append('Color', formData.color.trim())
-      formDataObj.append('Sizes', formData.sizes.trim())
       
-      if (imageFile) {
-        formDataObj.append('ImageFile', imageFile)
+      // Multi-image upload and variant metadata support
+      if (imageFiles.length > 0) {
+        imageFiles.forEach((file) => {
+          formDataObj.append('ImageFiles', file)
+        })
+        const primFile = imageFiles[primaryNewIndex] || imageFiles[0]
+        if (primFile) {
+          formDataObj.append('ImageFile', primFile)
+        }
+      }
+
+      // Per-image variant metadata (color, size, isPrimary)
+      const imageMetadata = [
+        ...existingImages.map((img) => ({
+          productImageId: img.productImageId !== 'legacy' ? img.productImageId : null,
+          color: img.color?.trim() || '',
+          size: img.size?.trim() || '',
+          isPrimary: primaryImageId ? primaryImageId === img.productImageId : (img.isPrimary && imageFiles.length === 0)
+        })),
+        ...imagePreviews.map((prev, idx) => ({
+          newFileIndex: idx,
+          color: prev.color?.trim() || '',
+          size: prev.size?.trim() || '',
+          isPrimary: !primaryImageId && primaryNewIndex === idx
+        }))
+      ]
+
+      formDataObj.append('ImageMetadataJson', JSON.stringify(imageMetadata))
+
+      imagePreviews.forEach((prev) => {
+        formDataObj.append('ImageColors', prev.color?.trim() || '')
+        formDataObj.append('ImageSizes', prev.size?.trim() || '')
+      })
+
+      if (deletedImageIds.length > 0) {
+        deletedImageIds.forEach((id) => {
+          formDataObj.append('DeletedImageIds', id)
+        })
+      }
+
+      if (primaryImageId) {
+        formDataObj.append('PrimaryImageId', primaryImageId)
       }
 
       let response
@@ -423,13 +497,37 @@ useEffect(() => {
           label: p.label || '',
           description: p.description || '',
           productDetails: p.productDetails || '',
-          color: p.color || '',
-          sizes: p.sizes || '',
           imageUrl: p.imageUrl || ''
         })
-        if (p.imageUrl) {
-          setImagePreview(p.imageUrl)
+
+        const imgs = Array.isArray(p.images) && p.images.length > 0
+          ? p.images.map((img) => ({
+              productImageId: img.productImageId,
+              imageUrl: img.imageUrl,
+              isPrimary: img.isPrimary,
+              displayOrder: img.displayOrder,
+              color: img.color || '',
+              size: img.size || ''
+            }))
+          : (p.imageUrl ? [{
+              productImageId: 'legacy',
+              imageUrl: p.imageUrl,
+              isPrimary: true,
+              displayOrder: 0,
+              color: '',
+              size: ''
+            }] : [])
+        setExistingImages(imgs)
+        const prim = imgs.find(img => img.isPrimary)
+        if (prim && prim.productImageId !== 'legacy') {
+          setPrimaryImageId(prim.productImageId)
+        } else {
+          setPrimaryImageId(null)
         }
+        setImageFiles([])
+        setImagePreviews([])
+        setDeletedImageIds([])
+        setPrimaryNewIndex(0)
         setEditingProduct(p)
         setShowProductForm(true)
         setValidationErrors({})
@@ -826,93 +924,289 @@ useEffect(() => {
                     </select>
                   </div>
 
-                  {/* Color */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Color *
-                      {hasError('color') && (
-                        <span className="text-red-500 text-xs ml-1">{getError('color')}</span>
-                      )}
-                    </label>
-                    <input
-                      type="text"
-                      name="color"
-                      value={formData.color}
-                      onChange={handleProductChange}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#391F10] text-sm ${
-                        hasError('color') ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                      }`}
-                      placeholder="#391F10, #102A39"
-                    />
-                  </div>
-
-                  {/* Sizes */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Sizes *
-                      {hasError('sizes') && (
-                        <span className="text-red-500 text-xs ml-1">{getError('sizes')}</span>
-                      )}
-                    </label>
-                    <input
-                      type="text"
-                      name="sizes"
-                      value={formData.sizes}
-                      onChange={handleProductChange}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#391F10] text-sm ${
-                        hasError('sizes') ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                      }`}
-                      placeholder="S, M, L, XL"
-                    />
-                  </div>
-
-                  {/* Image Upload */}
+                  {/* Multi-Image Upload & Management */}
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Image File
-                      {hasError('ImageFile') && (
-                        <span className="text-red-500 text-xs ml-1">{getError('ImageFile')}</span>
-                      )}
-                    </label>
-                    <div className="flex items-center gap-4">
-                      <div 
-                        className={`flex-1 border-2 border-dashed rounded-lg p-4 hover:border-[#391F10] transition-all cursor-pointer ${
-                          hasError('ImageFile') ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                        }`}
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        <div className="flex items-center justify-center gap-3">
-                          <CloudArrowUpIcon className="h-6 w-6 text-gray-400" />
-                          <span className="text-sm text-gray-500">
-                            {imageFile ? imageFile.name : 'Click to upload image'}
-                          </span>
-                        </div>
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageSelect}
-                          className="hidden"
-                        />
-                      </div>
-                      {imagePreview && (
-                        <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
-                          <img
-                            src={imagePreview}
-                            alt="Preview"
-                            className="w-full h-full object-cover"
-                          />
-                          <button
-                            type="button"
-                            onClick={removeImage}
-                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 shadow-lg hover:bg-red-600 transition-all"
-                          >
-                            <XMarkIcon className="h-3 w-3" />
-                          </button>
-                        </div>
-                      )}
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Product Images
+                        {hasError('ImageFile') && (
+                          <span className="text-red-500 text-xs ml-1">{getError('ImageFile')}</span>
+                        )}
+                      </label>
+                      <span className="text-xs text-gray-400">
+                        {existingImages.length + imagePreviews.length} image{existingImages.length + imagePreviews.length === 1 ? '' : 's'} total
+                      </span>
                     </div>
-                    <p className="text-xs text-gray-400 mt-1">Upload JPG, PNG, WEBP (Max 5MB)</p>
+
+                    {/* Upload Drop Area */}
+                    <div 
+                      className={`border-2 border-dashed rounded-lg p-4 hover:border-[#391F10] transition-all cursor-pointer bg-gray-50/50 hover:bg-white ${
+                        hasError('ImageFile') ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                      }`}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <div className="flex flex-col items-center justify-center gap-2 py-2">
+                        <CloudArrowUpIcon className="h-8 w-8 text-gray-400" />
+                        <div className="text-center">
+                          <span className="text-sm font-medium text-[#391F10]">Click to browse images</span>
+                          <span className="text-sm text-gray-500"> or select multiple files</span>
+                        </div>
+                        <p className="text-xs text-gray-400">Supports JPG, PNG, WEBP (Max 5MB each)</p>
+                      </div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleImageSelect}
+                        className="hidden"
+                      />
+                    </div>
+
+                    {/* Preview & Existing Images Grid */}
+                    {(existingImages.length > 0 || imagePreviews.length > 0) && (
+                      <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                        {/* Existing Images */}
+                        {existingImages.map((img) => {
+                          const isPrimary = primaryImageId
+                            ? primaryImageId === img.productImageId
+                            : (img.isPrimary && imagePreviews.length === 0);
+
+                          return (
+                            <div
+                              key={img.productImageId || img.imageUrl}
+                              className={`relative group rounded-lg overflow-hidden border-2 bg-white flex flex-col shadow-sm transition-all ${
+                                isPrimary ? 'border-[#C9A96E] ring-2 ring-[#C9A96E]/20 shadow-md' : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                            >
+                              {/* Thumbnail */}
+                              <div className="relative aspect-square bg-gray-100 overflow-hidden">
+                                <img
+                                  src={img.imageUrl}
+                                  alt="Existing product"
+                                  className="w-full h-full object-cover"
+                                />
+
+                                {/* Primary Badge or Set Primary Button */}
+                                {isPrimary ? (
+                                  <span className="absolute top-1 left-1 bg-[#391F10] text-[#C9A96E] text-[10px] font-bold px-1.5 py-0.5 rounded shadow">
+                                    ★ Primary
+                                  </span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setPrimaryImageId(img.productImageId);
+                                      setPrimaryNewIndex(-1);
+                                    }}
+                                    className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 bg-white/90 text-gray-700 text-[10px] font-medium px-1.5 py-0.5 rounded shadow hover:bg-white transition-opacity"
+                                  >
+                                    Make Primary
+                                  </button>
+                                )}
+
+                                {/* Delete Button */}
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeExistingImage(img.productImageId);
+                                  }}
+                                  className="absolute top-1 right-1 bg-red-500/90 text-white rounded-full p-1 shadow hover:bg-red-600 transition-all opacity-80 group-hover:opacity-100"
+                                  title="Remove image"
+                                >
+                                  <XMarkIcon className="h-3 w-3" />
+                                </button>
+                              </div>
+
+                              {/* Per-Image Variant Controls */}
+                              <div className="p-2 border-t border-gray-100 flex flex-col gap-2 bg-gray-50/50 text-xs">
+                                <div className="flex flex-col gap-1">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-[10px] text-gray-500 font-medium w-9">Color:</span>
+                                    {/* Clickable Color Swatch Box that opens color palette */}
+                                    <label className="relative flex-1 flex items-center gap-2 px-2 py-1 bg-white border border-gray-200 rounded-md hover:border-[#391F10] transition-all cursor-pointer shadow-xs group/color">
+                                      <span
+                                        className="w-4 h-4 rounded-full border border-gray-300 shadow-inner flex-shrink-0"
+                                        style={{ backgroundColor: img.color || '#391F10' }}
+                                      />
+                                      <span className="text-[11px] font-mono text-gray-700 flex-1 truncate">
+                                        {img.color || '#391F10'}
+                                      </span>
+                                      <span className="text-[9px] text-gray-400 group-hover/color:text-[#391F10] font-medium transition-colors">
+                                        Palette
+                                      </span>
+                                      <input
+                                        type="color"
+                                        value={img.color && /^#[0-9A-F]{6}$/i.test(img.color) ? img.color : '#391F10'}
+                                        onChange={(e) => updateExistingImageMeta(img.productImageId, 'color', e.target.value)}
+                                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                      />
+                                    </label>
+                                  </div>
+                                  {/* Quick Palette Swatches */}
+                                  <div className="flex items-center justify-between pl-10 pr-0.5 pt-0.5">
+                                    {['#000000', '#FFFFFF', '#391F10', '#C9A96E', '#DC2626', '#2563EB', '#16A34A'].map((hex) => (
+                                      <button
+                                        key={hex}
+                                        type="button"
+                                        onClick={() => updateExistingImageMeta(img.productImageId, 'color', hex)}
+                                        className={`w-3.5 h-3.5 rounded-full border transition-all hover:scale-125 ${
+                                          (img.color || '').toLowerCase() === hex.toLowerCase() ? 'ring-1 ring-[#391F10] scale-110' : 'border-gray-300'
+                                        }`}
+                                        style={{ backgroundColor: hex }}
+                                        title={`Set color to ${hex}`}
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[10px] text-gray-500 font-medium w-9">Size:</span>
+                                  <input
+                                    type="text"
+                                    value={img.size || ''}
+                                    onChange={(e) => updateExistingImageMeta(img.productImageId, 'size', e.target.value)}
+                                    placeholder="e.g. M / L / One Size"
+                                    className="flex-1 px-1.5 py-1 text-[11px] border border-gray-200 rounded-md focus:border-[#391F10] focus:ring-0 bg-white"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {/* New Upload Previews */}
+                        {imagePreviews.map((preview, idx) => {
+                          const isPrimary = !primaryImageId && primaryNewIndex === idx;
+
+                          return (
+                            <div
+                              key={idx}
+                              className={`relative group rounded-lg overflow-hidden border-2 bg-white flex flex-col shadow-sm transition-all ${
+                                isPrimary ? 'border-[#C9A96E] ring-2 ring-[#C9A96E]/20 shadow-md' : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                            >
+                              {/* Thumbnail */}
+                              <div className="relative aspect-square bg-gray-100 overflow-hidden">
+                                <img
+                                  src={preview.url}
+                                  alt={preview.name || 'New upload'}
+                                  className="w-full h-full object-cover"
+                                />
+
+                                {/* Primary Badge or Set Primary Button */}
+                                {isPrimary ? (
+                                  <span className="absolute top-1 left-1 bg-[#391F10] text-[#C9A96E] text-[10px] font-bold px-1.5 py-0.5 rounded shadow">
+                                    ★ Primary
+                                  </span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setPrimaryNewIndex(idx);
+                                      setPrimaryImageId(null);
+                                    }}
+                                    className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 bg-white/90 text-gray-700 text-[10px] font-medium px-1.5 py-0.5 rounded shadow hover:bg-white transition-opacity"
+                                  >
+                                    Make Primary
+                                  </button>
+                                )}
+
+                                {/* New Indicator Tag */}
+                                <span className="absolute bottom-1 left-1 bg-green-600/90 text-white text-[9px] font-semibold px-1 rounded shadow">
+                                  New
+                                </span>
+
+                                {/* Remove Button */}
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeNewImage(idx);
+                                  }}
+                                  className="absolute top-1 right-1 bg-red-500/90 text-white rounded-full p-1 shadow hover:bg-red-600 transition-all opacity-80 group-hover:opacity-100"
+                                  title="Remove image"
+                                >
+                                  <XMarkIcon className="h-3 w-3" />
+                                </button>
+                              </div>
+
+                              {/* Per-Image Variant Controls */}
+                              <div className="p-2 border-t border-gray-100 flex flex-col gap-2 bg-gray-50/50 text-xs">
+                                <div className="flex flex-col gap-1">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-[10px] text-gray-500 font-medium w-9">Color:</span>
+                                    {/* Clickable Color Swatch Box that opens color palette */}
+                                    <label className="relative flex-1 flex items-center gap-2 px-2 py-1 bg-white border border-gray-200 rounded-md hover:border-[#391F10] transition-all cursor-pointer shadow-xs group/color">
+                                      <span
+                                        className="w-4 h-4 rounded-full border border-gray-300 shadow-inner flex-shrink-0"
+                                        style={{ backgroundColor: preview.color || '#391F10' }}
+                                      />
+                                      <span className="text-[11px] font-mono text-gray-700 flex-1 truncate">
+                                        {preview.color || '#391F10'}
+                                      </span>
+                                      <span className="text-[9px] text-gray-400 group-hover/color:text-[#391F10] font-medium transition-colors">
+                                        Palette
+                                      </span>
+                                      <input
+                                        type="color"
+                                        value={preview.color && /^#[0-9A-F]{6}$/i.test(preview.color) ? preview.color : '#391F10'}
+                                        onChange={(e) => updateNewImageMeta(idx, 'color', e.target.value)}
+                                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                      />
+                                    </label>
+                                  </div>
+                                  {/* Quick Palette Swatches */}
+                                  <div className="flex items-center justify-between pl-10 pr-0.5 pt-0.5">
+                                    {['#000000', '#FFFFFF', '#391F10', '#C9A96E', '#DC2626', '#2563EB', '#16A34A'].map((hex) => (
+                                      <button
+                                        key={hex}
+                                        type="button"
+                                        onClick={() => updateNewImageMeta(idx, 'color', hex)}
+                                        className={`w-3.5 h-3.5 rounded-full border transition-all hover:scale-125 ${
+                                          (preview.color || '').toLowerCase() === hex.toLowerCase() ? 'ring-1 ring-[#391F10] scale-110' : 'border-gray-300'
+                                        }`}
+                                        style={{ backgroundColor: hex }}
+                                        title={`Set color to ${hex}`}
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[10px] text-gray-500 font-medium w-9">Size:</span>
+                                  <input
+                                    type="text"
+                                    value={preview.size || ''}
+                                    onChange={(e) => updateNewImageMeta(idx, 'size', e.target.value)}
+                                    placeholder="e.g. M / L / One Size"
+                                    className="flex-1 px-1.5 py-1 text-[11px] border border-gray-200 rounded-md focus:border-[#391F10] focus:ring-0 bg-white"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {/* Quick Add More Tile */}
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="min-h-[160px] rounded-lg border-2 border-dashed border-gray-300 hover:border-[#391F10] flex flex-col items-center justify-center text-gray-400 hover:text-[#391F10] transition-all bg-white p-4"
+                        >
+                          <PlusIcon className="h-6 w-6 mb-1" />
+                          <span className="text-xs font-medium">Add More</span>
+                          <span className="text-[10px] text-gray-400">Variant photos</span>
+                        </button>
+                      </div>
+                    )}
+
+                    <p className="text-xs text-gray-400 mt-2">
+                      Tip: You can assign a specific Color and Size to each image. Click &quot;Make Primary&quot; to set the default catalog cover.
+                    </p>
                   </div>
 
                   {/* Description */}
@@ -1073,13 +1367,23 @@ useEffect(() => {
                     <tr key={p.productId} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          {p.imageUrl ? (
-                            <img src={p.imageUrl} alt={p.title} className="w-10 h-10 rounded-lg object-cover" />
-                          ) : (
-                            <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                              <PhotoIcon className="h-5 w-5 text-gray-400" />
-                            </div>
-                          )}
+                          <div className="relative w-10 h-10 flex-shrink-0">
+                            {p.imageUrl ? (
+                              <img src={p.imageUrl} alt={p.title} className="w-10 h-10 rounded-lg object-cover" />
+                            ) : (
+                              <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                                <PhotoIcon className="h-5 w-5 text-gray-400" />
+                              </div>
+                            )}
+                            {(p.images?.length > 1 || p.imageUrls?.length > 1) && (
+                              <span 
+                                className="absolute -bottom-1 -right-1 bg-[#391F10] text-[#C9A96E] text-[9px] font-bold px-1 rounded-full border border-white shadow-sm"
+                                title={`${p.images?.length || p.imageUrls?.length} images`}
+                              >
+                                {p.images?.length || p.imageUrls?.length}
+                              </span>
+                            )}
+                          </div>
                           <div>
                             <p className="font-medium text-sm text-[#391F10]">{p.title}</p>
                             <p className="text-xs text-gray-400">{p.subtitle}</p>

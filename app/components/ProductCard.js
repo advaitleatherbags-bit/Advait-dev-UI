@@ -18,7 +18,8 @@ export default function ProductCard({ product }) {
   const productId = product?.productId || product?.id
   const productName = product?.title || product?.name
   const productPrice = product?.price
-  const productImage = product?.imageUrl || product?.image
+  const productImage = product?.imageUrl || product?.imageUrls?.[0] || product?.image
+  const secondaryImage = product?.imageUrls?.[1] || (product?.images?.length > 1 ? product.images[1].imageUrl : null)
   const productCategory = product?.categoryName || product?.category
   const discount = product?.discountPercentage || 0
   const label = product?.label || product?.badge
@@ -218,16 +219,29 @@ export default function ProductCard({ product }) {
       className="group bg-white rounded-xl border border-gray-100 hover:border-[#C9A96E]/40 hover:shadow-xl transition-all duration-400 overflow-hidden w-full h-full flex flex-col"
     >
       <div className="relative aspect-square bg-gray-50 overflow-hidden flex-shrink-0">
-        <Link href={`/products/${productId}`}>
+        <Link href={`/products/${productId}`} className="relative w-full h-full block">
           {/* eslint-disable-next-line @next/next/no-img-element -- product images use runtime API URLs. */}
           <img
             src={productImage || 'https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=400'}
             alt={productName || 'Product'}
-            className="object-cover transition-transform duration-700 group-hover:scale-105 w-full h-full"
+            className={`object-cover transition-all duration-700 w-full h-full ${
+              secondaryImage ? 'group-hover:opacity-0 group-hover:scale-105' : 'group-hover:scale-105'
+            }`}
             onError={(e) => {
               e.target.src = 'https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=400'
             }}
           />
+          {secondaryImage && (
+            /* eslint-disable-next-line @next/next/no-img-element -- product images use runtime API URLs. */
+            <img
+              src={secondaryImage}
+              alt={`${productName || 'Product'} alternate view`}
+              className="absolute inset-0 object-cover opacity-0 group-hover:opacity-100 transition-all duration-700 group-hover:scale-105 w-full h-full"
+              onError={(e) => {
+                e.target.style.display = 'none'
+              }}
+            />
+          )}
         </Link>
         
         {badgeText && (
