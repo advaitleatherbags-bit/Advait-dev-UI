@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
-import { HeartIcon, ShoppingBagIcon } from '@heroicons/react/24/outline'
+import { HeartIcon, ShoppingBagIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../../context/AuthContext'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
@@ -17,6 +17,7 @@ export default function ProductDetail() {
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [activeImageIndex, setActiveImageIndex] = useState(0)
   const [selectedColor, setSelectedColor] = useState('')
   const [selectedSize, setSelectedSize] = useState('')
   const [isWishlisted, setIsWishlisted] = useState(false)
@@ -43,16 +44,33 @@ export default function ProductDetail() {
         const data = await response.json()
         setProduct(data)
         
+        // Gather all colors from product and image variants
+        const allColors = new Set()
         if (data.color) {
-          const colorArray = data.color.split(',').map(c => c.trim())
-          setColors(colorArray)
-          setSelectedColor(colorArray[0] || '')
+          data.color.split(',').map(c => c.trim()).filter(Boolean).forEach(c => allColors.add(c))
         }
+        if (Array.isArray(data.images)) {
+          data.images.forEach(img => {
+            if (img.color && img.color.trim()) allColors.add(img.color.trim())
+          })
+        }
+        const colorArray = Array.from(allColors)
+        setColors(colorArray)
+        setSelectedColor(colorArray[0] || '')
+
+        // Gather all sizes from product and image variants
+        const allSizes = new Set()
         if (data.sizes) {
-          const sizeArray = data.sizes.split(',').map(s => s.trim())
-          setSizes(sizeArray)
-          setSelectedSize(sizeArray[0] || '')
+          data.sizes.split(',').map(s => s.trim()).filter(Boolean).forEach(s => allSizes.add(s))
         }
+        if (Array.isArray(data.images)) {
+          data.images.forEach(img => {
+            if (img.size && img.size.trim()) allSizes.add(img.size.trim())
+          })
+        }
+        const sizeArray = Array.from(allSizes)
+        setSizes(sizeArray)
+        setSelectedSize(sizeArray[0] || '')
       } else if (response.status === 401) {
         setError('Please login to view product details')
       } else if (response.status === 404) {
@@ -154,26 +172,188 @@ export default function ProductDetail() {
     )
   }
 
+  const productImages = Array.isArray(product?.images) && product.images.length > 0
+    ? product.images
+    : (product?.imageUrls?.length > 0
+        ? product.imageUrls.map((url, i) => ({
+            productImageId: `url-${i}`,
+            imageUrl: url,
+            color: product?.color || '',
+            size: product?.sizes || '',
+            isPrimary: i === 0
+          }))
+        : (product?.imageUrl ? [{
+            productImageId: 'primary',
+            imageUrl: product.imageUrl,
+            color: product?.color || '',
+            size: product?.sizes || '',
+            isPrimary: true
+          }] : []))
+
+  const currentImageObj = productImages[activeImageIndex] || productImages[0]
+  const currentImage = currentImageObj?.imageUrl || product?.imageUrl || 'https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=600'
+
+  const handlePrevImage = (e) => {
+    e.stopPropagation()
+    const nextIdx = activeImageIndex === 0 ? productImages.length - 1 : activeImageIndex - 1
+    setActiveImageIndex(nextIdx)
+    const img = productImages[nextIdx]
+    if (img?.color) setSelectedColor(img.color)
+    if (img?.size) setSelectedSize(img.size)
+  }
+
+  const handleNextImage = (e) => {
+    e.stopPropagation()
+    const nextIdx = activeImageIndex === productImages.length - 1 ? 0 : activeImageIndex + 1
+    setActiveImageIndex(nextIdx)
+    const img = productImages[nextIdx]
+    if (img?.color) setSelectedColor(img.color)
+    if (img?.size) setSelectedSize(img.size)
+  }
+
+  const handleThumbnailClick = (idx) => {
+    setActiveImageIndex(idx)
+    const img = productImages[idx]
+    if (img?.color && img.color.trim()) {
+      setSelectedColor(img.color.trim())
+    }
+    if (img?.size && img.size.trim()) {
+      setSelectedSize(img.size.trim())
+    }
+  }
+
+  const handleColorSelect = (color) => {
+    setSelectedColor(color)
+    const targetIdx = productImages.findIndex((img) => {
+      const imgColor = img.color?.toLowerCase()?.trim()
+      const target = color.toLowerCase().trim()
+      return imgColor && (imgColor === target || imgColor.includes(target) || target.includes(imgColor))
+    })
+    if (targetIdx !== -1) {
+      setActiveImageIndex(targetIdx)
+    }
+  }
+
+  const handleSizeSelect = (size) => {
+    setSelectedSize(size)
+    const targetIdx = productImages.findIndex((img) => {
+      const imgSize = img.size?.toLowerCase()?.trim()
+      const target = size.toLowerCase().trim()
+      return imgSize && (imgSize === target || imgSize.includes(target) || target.includes(imgSize))
+    })
+    if (targetIdx !== -1) {
+      setActiveImageIndex(targetIdx)
+    }
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
       <div className="grid md:grid-cols-2 gap-12">
-        {/* Product Image */}
+        {/* Product Image Gallery */}
         <motion.div
           initial={{ x: -50, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.6 }}
-          className="relative h-96 md:h-[500px] bg-gray-100 rounded-2xl overflow-hidden shadow-lg"
+          className="flex flex-col gap-4"
         >
-          {/* eslint-disable-next-line @next/next/no-img-element -- product images use runtime API URLs. */}
-          <img
-            src={product.imageUrl || 'https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=600'}
-            alt={product.title || 'Product'}
-            className="w-full h-full object-cover"
-          />
-          {product.discountPercentage > 0 && (
-            <span className="absolute top-4 left-4 bg-red-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
-              {product.discountPercentage}% OFF
-            </span>
+          {/* Main Display Image */}
+          <div className="relative h-96 md:h-[500px] bg-gray-100 rounded-2xl overflow-hidden shadow-lg group">
+            <AnimatePresence mode="wait">
+              {/* eslint-disable-next-line @next/next/no-img-element -- product images use runtime API URLs. */}
+              <motion.img
+                key={currentImage}
+                src={currentImage}
+                alt={product.title || 'Product'}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="w-full h-full object-cover"
+              />
+            </AnimatePresence>
+
+            {product.discountPercentage > 0 && (
+              <span className="absolute top-4 left-4 bg-red-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg z-10">
+                {product.discountPercentage}% OFF
+              </span>
+            )}
+
+            {/* Active Variant Pill (Color & Size) */}
+            {(currentImageObj?.color || currentImageObj?.size) && (
+              <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-[#391F10] shadow-md border border-gray-100 z-10 flex items-center gap-1.5">
+                {currentImageObj.color && (
+                  <span
+                    className="w-2.5 h-2.5 rounded-full border border-gray-300 flex-shrink-0"
+                    style={{ backgroundColor: currentImageObj.color }}
+                  />
+                )}
+                <span>
+                  {[currentImageObj.color, currentImageObj.size].filter(Boolean).join(' • ')}
+                </span>
+              </div>
+            )}
+
+            {/* Navigation Arrows (if multiple images) */}
+            {productImages.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={handlePrevImage}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md transition-all duration-200 opacity-80 hover:opacity-100 hover:scale-110 z-10"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeftIcon className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNextImage}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md transition-all duration-200 opacity-80 hover:opacity-100 hover:scale-110 z-10"
+                  aria-label="Next image"
+                >
+                  <ChevronRightIcon className="h-5 w-5" />
+                </button>
+
+                {/* Counter Badge */}
+                <div className="absolute bottom-4 right-4 bg-black/60 text-white text-xs px-2.5 py-1 rounded-full backdrop-blur-sm z-10 font-medium">
+                  {activeImageIndex + 1} / {productImages.length}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Thumbnail Strip (if multiple images) */}
+          {productImages.length > 1 && (
+            <div className="flex items-center gap-3 overflow-x-auto pb-2">
+              {productImages.map((img, idx) => {
+                const thumbUrl = img.imageUrl || img;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleThumbnailClick(idx)}
+                    className={`relative flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all duration-200 ${
+                      activeImageIndex === idx
+                        ? 'border-[#391F10] ring-2 ring-[#C9A96E]/50 scale-105 shadow-md'
+                        : 'border-transparent opacity-70 hover:opacity-100 hover:border-gray-300'
+                    }`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element -- product images use runtime API URLs. */}
+                    <img
+                      src={thumbUrl}
+                      alt={`${product.title} thumbnail ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    {img.color && (
+                      <span
+                        className="absolute bottom-1 right-1 w-3 h-3 rounded-full border border-white shadow-sm"
+                        style={{ backgroundColor: img.color }}
+                        title={`Color: ${img.color}`}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           )}
         </motion.div>
 
@@ -212,15 +392,17 @@ export default function ProductDetail() {
           {/* Colors */}
           {colors.length > 0 && (
             <div>
-              <h3 className="font-semibold text-[#391F10] mb-3">Color</h3>
-              <div className="flex gap-3">
+              <h3 className="font-semibold text-[#391F10] mb-3 flex items-center gap-2">
+                Color: {selectedColor && <span className="text-sm font-normal text-gray-600 capitalize">{selectedColor}</span>}
+              </h3>
+              <div className="flex flex-wrap gap-3">
                 {colors.map((color) => (
                   <button
                     key={color}
-                    onClick={() => setSelectedColor(color)}
+                    onClick={() => handleColorSelect(color)}
                     className={`w-10 h-10 rounded-full border-2 transition-all duration-300 ${
                       selectedColor === color 
-                        ? 'border-[#391F10] scale-110 shadow-lg' 
+                        ? 'border-[#391F10] ring-2 ring-[#C9A96E]/50 scale-110 shadow-lg' 
                         : 'border-transparent hover:scale-105'
                     }`}
                     style={{ backgroundColor: color }}
@@ -234,12 +416,14 @@ export default function ProductDetail() {
           {/* Sizes */}
           {sizes.length > 0 && (
             <div>
-              <h3 className="font-semibold text-[#391F10] mb-3">Size</h3>
+              <h3 className="font-semibold text-[#391F10] mb-3 flex items-center gap-2">
+                Size: {selectedSize && <span className="text-sm font-normal text-gray-600">{selectedSize}</span>}
+              </h3>
               <div className="flex flex-wrap gap-3">
                 {sizes.map((size) => (
                   <button
                     key={size}
-                    onClick={() => setSelectedSize(size)}
+                    onClick={() => handleSizeSelect(size)}
                     className={`px-5 py-2.5 border-2 rounded-lg transition-all duration-300 font-medium ${
                       selectedSize === size
                         ? 'bg-[#391F10] text-white border-[#391F10] shadow-lg'
