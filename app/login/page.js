@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '../context/AuthContext'
 import { 
   EnvelopeIcon, 
   LockClosedIcon, 
@@ -16,6 +17,7 @@ import {
 export default function Login() {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL
   const router = useRouter()
+  const { user, token, loading: authLoading } = useAuth()
   const [formData, setFormData] = useState({
     identifier: '',
     password: ''
@@ -24,6 +26,25 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+
+  useEffect(() => {
+    if (authLoading) return
+    if (user || token) {
+      if (user?.role === 'Admin' || user?.role === 'admin') {
+        router.replace('/admin')
+      } else {
+        router.replace('/')
+      }
+    }
+  }, [user, token, authLoading, router])
+
+  if (authLoading || user || token) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="w-10 h-10 border-4 border-[#391F10] border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })

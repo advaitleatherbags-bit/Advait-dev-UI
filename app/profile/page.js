@@ -13,14 +13,15 @@ import {
   ShoppingBagIcon,
   ChevronDownIcon,
   CreditCardIcon,
-  ArrowPathIcon
+  ArrowPathIcon,
+  ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
 export default function Profile() {
   const router = useRouter()
-  const { user, token, loading: authLoading } = useAuth()
+  const { user, token, logout, loading: authLoading } = useAuth()
   
   const [orders, setOrders] = useState([])
   const [loadingOrders, setLoadingOrders] = useState(true)
@@ -60,6 +61,11 @@ export default function Profile() {
 
     fetchOrders(token)
   }, [authLoading, user, token, router, fetchOrders])
+
+  const handleLogout = () => {
+    logout()
+    router.push('/login')
+  }
 
   const toggleExpand = (orderId) => {
     setExpandedOrder(expandedOrder === orderId ? null : orderId)
@@ -147,8 +153,8 @@ export default function Profile() {
         
         {/* Profile Header Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="bg-[#391F10] px-6 py-8 sm:px-8 relative overflow-hidden">
-            <div className="absolute inset-0 bg-black/10" />
+          <div className="bg-[#391F10] px-6 py-8 sm:px-8 relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div className="absolute inset-0 bg-black/10 pointer-events-none" />
             <div className="relative flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-center sm:text-left">
               <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center text-white border border-white/20">
                 <UserIcon className="h-10 w-10 text-[#C9A96E]" />
@@ -157,6 +163,18 @@ export default function Profile() {
                 <h1 className="text-2xl sm:text-3xl font-bold">{user.username || 'My Profile'}</h1>
                 <p className="text-[#C9A96E] font-medium text-sm capitalize">{user.role || 'Customer'}</p>
               </div>
+            </div>
+
+            {/* Profile Section Logout Button */}
+            <div className="relative z-10">
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex items-center gap-2.5 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-red-600/90 text-white font-medium text-sm border border-white/20 hover:border-red-500 shadow-sm transition-all duration-200 group"
+              >
+                <ArrowRightOnRectangleIcon className="h-4 w-4 text-red-300 group-hover:text-white transition-colors" />
+                <span>Logout</span>
+              </button>
             </div>
           </div>
           
