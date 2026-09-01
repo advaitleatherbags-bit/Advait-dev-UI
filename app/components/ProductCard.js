@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { HeartIcon, ShoppingBagIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -10,6 +11,7 @@ import { useAuth } from '../context/AuthContext'
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
 export default function ProductCard({ product }) {
+  const router = useRouter()
   const [isWishlisted, setIsWishlisted] = useState(false)
   const [addingToCart, setAddingToCart] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -67,7 +69,7 @@ export default function ProductCard({ product }) {
   // ✅ Add to Wishlist
   const addToWishlist = async () => {
     if (!userId) {
-      alert('Please login to add to wishlist')
+      router.push('/login')
       return
     }
 
@@ -136,7 +138,7 @@ export default function ProductCard({ product }) {
     e.stopPropagation()
     
     if (!userId) {
-      alert('Please login to add to wishlist')
+      router.push('/login')
       return
     }
 
@@ -153,7 +155,7 @@ export default function ProductCard({ product }) {
     e.stopPropagation()
 
     if (!userId) {
-      alert('Please login to add items to cart')
+      router.push('/login')
       return
     }
 

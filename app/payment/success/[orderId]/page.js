@@ -159,7 +159,7 @@ export default function PaymentSuccess() {
               <ShoppingBagIcon className="h-5 w-5" />
               View Orders
             </Link>
-          </div>s
+          </div>
         </div>
 
         <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 text-center">

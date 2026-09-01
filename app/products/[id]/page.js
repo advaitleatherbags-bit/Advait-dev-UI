@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { HeartIcon, ShoppingBagIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -11,8 +11,9 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL
 const getToken = () => localStorage.getItem('token')
 
 export default function ProductDetail() {
-  const params = useParams()
-  const id = params.id
+const params = useParams()
+const router = useRouter()
+const id = params.id
   
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -91,9 +92,83 @@ export default function ProductDetail() {
     }
   }, [fetchProduct, id])
 
+  const checkWishlist = useCallback(async () => {
+    if (!userId || !id) return
+    try {
+      const response = await fetch(`${API_BASE}/UserLikes`, {
+        headers: {
+          'Authorization': `Bearer ${getToken()}`
+        }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        const likes = Array.isArray(data) ? data : []
+        const found = likes.some(item => item.productId === id)
+        setIsWishlisted(found)
+      }
+    } catch {
+      // ignore
+    }
+  }, [id, userId])
+
+  useEffect(() => {
+    checkWishlist()
+  }, [checkWishlist])
+
+  const toggleWishlist = async () => {
+    if (!userId) {
+      router.push('/login')
+      return
+    }
+
+    try {
+      if (isWishlisted) {
+        const res = await fetch(`${API_BASE}/UserLikes`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        })
+        if (res.ok) {
+          const data = await responseData(res)
+          const likes = Array.isArray(data) ? data : []
+          const like = likes.find(item => item.productId === id)
+          if (like && like.id) {
+            await fetch(`${API_BASE}/UserLikes/${like.id}`, {
+              method: 'DELETE',
+              headers: { 'Authorization': `Bearer ${getToken()}` }
+            })
+            setIsWishlisted(false)
+            window.dispatchEvent(new Event('advit:commerce-updated'))
+          }
+        }
+      } else {
+        const res = await fetch(`${API_BASE}/UserLikes`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`
+          },
+          body: JSON.stringify({ productId: id })
+        })
+        if (res.ok) {
+          setIsWishlisted(true)
+          window.dispatchEvent(new Event('advit:commerce-updated'))
+        }
+      }
+    } catch {
+      alert('Failed to update wishlist. Please try again.')
+    }
+  }
+
+  const responseData = async (res) => {
+    try {
+      return await res.json()
+    } catch {
+      return []
+    }
+  }
+
   const addToCart = async () => {
     if (!userId) {
-      alert('Please login to add items to cart')
+      router.push('/login')
       return
     }
 
@@ -474,7 +549,7 @@ export default function ProductDetail() {
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              onClick={() => setIsWishlisted(!isWishlisted)}
+              onClick={toggleWishlist}
               className={`px-6 py-4 rounded-full border-2 transition-all duration-300 flex items-center justify-center gap-2 font-medium ${
                 isWishlisted
                   ? 'bg-red-500 border-red-500 text-white hover:bg-red-600'

@@ -463,14 +463,27 @@ export default function Navbar() {
                   {loading ? (
                     <div className="flex-1 bg-white/5 rounded-full h-9 animate-pulse" />
                   ) : user ? (
-                    <Link
-                      href="/profile"
-                      onClick={() => setIsOpen(false)}
-                      className="flex-1 bg-[#C9A96E]/10 text-white px-4 py-2.5 rounded-full text-center font-medium text-sm flex items-center justify-center gap-2"
-                    >
-                      <UserIcon className="h-4 w-4 text-[#C9A96E]" />
-                      {user.username || 'User'}
-                    </Link>
+                    <div className="flex-1 flex items-center gap-2">
+                      <Link
+                        href="/profile"
+                        onClick={() => setIsOpen(false)}
+                        className="flex-1 bg-[#C9A96E]/10 text-white px-4 py-2.5 rounded-full text-center font-medium text-sm flex items-center justify-center gap-2 hover:bg-[#C9A96E]/20 transition-all"
+                      >
+                        <UserIcon className="h-4 w-4 text-[#C9A96E]" />
+                        <span className="truncate">{user.username || 'User'}</span>
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsOpen(false)
+                          handleLogout()
+                        }}
+                        className="p-2.5 rounded-full bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/20 transition-all"
+                        title="Logout"
+                      >
+                        <ArrowRightOnRectangleIcon className="h-5 w-5" />
+                      </button>
+                    </div>
                   ) : (
                     <Link
                       href="/login"

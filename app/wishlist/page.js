@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { 
   HeartIcon, 
   TrashIcon, 
@@ -18,6 +19,7 @@ const getToken = () => {
 }
 
 export default function Wishlist() {
+  const router = useRouter()
   const { user } = useAuth()
   const [wishlistItems, setWishlistItems] = useState([])
   const [loading, setLoading] = useState(true)
@@ -82,7 +84,7 @@ export default function Wishlist() {
   // ✅ Add to Cart from Wishlist
   const addToCart = async (productId, price) => {
     if (!userId) {
-      alert('Please login to add items to cart')
+      router.push('/login')
       return
     }
 
