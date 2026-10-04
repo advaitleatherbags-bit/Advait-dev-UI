@@ -18,7 +18,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d).{8}$/
 
 export default function Login() {
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL
+  const API_BASE = '/api/backend'
   const router = useRouter()
   const { user, token, loading: authLoading } = useAuth()
   const { showSnackbar } = useSnackbar()

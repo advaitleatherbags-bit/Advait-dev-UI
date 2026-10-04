@@ -71,7 +71,7 @@ function getBackendErrorMessage(body) {
 }
 
 export default function SignUp() {
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL
+  const API_BASE = '/api/backend'
   const router = useRouter()
   const { showSnackbar } = useSnackbar()
   const { user, token, loading: authLoading } = useAuth()

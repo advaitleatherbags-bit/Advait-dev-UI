@@ -26,7 +26,7 @@ export function AuthProvider({ children }) {
       setToken(storedToken)
 
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/Auth/me`, {
+        const response = await fetch(`/api/backend/Auth/me`, {
           headers: {
             Authorization: `Bearer ${storedToken}`,
           },

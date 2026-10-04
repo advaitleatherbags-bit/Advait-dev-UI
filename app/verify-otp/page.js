@@ -12,7 +12,7 @@ import {
 } from '@heroicons/react/24/outline'
 
 function VerifyOtpContent() {
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL
+  const API_BASE = '/api/backend'
   const router = useRouter()
   const { showSnackbar } = useSnackbar()
   const searchParams = useSearchParams()

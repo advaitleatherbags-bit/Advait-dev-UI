@@ -8,7 +8,7 @@ import { CheckCircleIcon, HomeIcon, ShoppingBagIcon } from '@heroicons/react/24/
 import { useSnackbar } from '../../../components/SnackbarProvider'
 import { formatINR } from '../../../utils/currency'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL
+const API_BASE = '/api/backend'
 
 export default function PaymentSuccess() {
   const { showSnackbar } = useSnackbar()

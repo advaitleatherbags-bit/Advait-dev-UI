@@ -14,7 +14,7 @@ import { useAuth } from '../context/AuthContext'
 import { useSnackbar } from '../components/SnackbarProvider'
 import { formatINR } from '../utils/currency'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL
+const API_BASE = '/api/backend'
 const getToken = () => {
   if (typeof window === 'undefined') return null
   return localStorage.getItem('token')
