@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { formatINR } from '../utils/currency'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL
+const API_BASE = '/api/backend'
 
 export default function ProductCard({ product }) {
   const router = useRouter()
