@@ -47,7 +47,7 @@ async function proxyRequest(request, context) {
     upstreamUrl = new URL(API_BASE)
     if (!['http:', 'https:'].includes(upstreamUrl.protocol)) throw new Error('Invalid protocol')
   } catch {
-    return Response.json({ error: 'API_URL must be a valid HTTP or HTTPS URL' }, { status: 500 })
+    return Response.json({ error: 'API Url must be a valid HTTP or HTTPS URL' }, { status: 500 })
   }
 
   const basePath = upstreamUrl.pathname.replace(/\/{2,}/g, '/').replace(/\/+$/, '')
