@@ -395,15 +395,11 @@ useEffect(() => {
       formDataObj.append('ProductDetails', formData.productDetails.trim())
       
       // Multi-image upload and variant metadata support
-      if (imageFiles.length > 0) {
-        imageFiles.forEach((file) => {
-          formDataObj.append('ImageFiles', file)
-        })
-        const primFile = imageFiles[primaryNewIndex] || imageFiles[0]
-        if (primFile) {
-          formDataObj.append('ImageFile', primFile)
-        }
-      }
+     if (imageFiles.length > 0) {
+  imageFiles.forEach((file) => {
+    formDataObj.append('ImageFiles', file)
+  })
+}
 
       // Per-image variant metadata (color, size, isPrimary)
       const imageMetadata = [

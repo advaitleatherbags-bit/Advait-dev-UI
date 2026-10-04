@@ -59,14 +59,15 @@ const categories = [
   { id: 'cat-6', name: 'Luggage', icon: '🧳', bg: 'from-red-50 to-rose-50' },
 ]
 
-// Instagram Posts - Leather Fashion
+const instagramPostUrl = 'https://www.instagram.com/p/DdGxCQzxCst/?stkn=d2F2MXlvajFtNzlx'
+
+// Instagram Posts
 const instagramPosts = [
-  { id: 'insta-1', url: 'https://images.unsplash.com/photo-1547949003-9792a18a2601?w=400' },
-  { id: 'insta-2', url: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=400' },
-  { id: 'insta-3', url: 'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=400' },
-  { id: 'insta-4', url: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400' },
-  { id: 'insta-5', url: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400' },
-  { id: 'insta-6', url: 'https://images.unsplash.com/photo-1576871337622-98d48d1cf531?w=400' },
+  { id: 'insta-1', url: '/images/hero/bag_1.png' },
+  { id: 'insta-2', url: '/images/hero/bag_2.png' },
+  { id: 'insta-3', url: '/images/hero/bag_3.png' },
+  { id: 'insta-4', url: '/images/hero/bag_4.png' },
+  { id: 'insta-5', url: '/images/hero/bag_5.png' },
 ]
 
 export default function About() {
@@ -172,10 +173,17 @@ export default function About() {
             <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-[#391F10] mb-2 sm:mb-3 tracking-tight">
               Follow Us on Instagram
             </h2>
-            <p className="text-sm sm:text-base text-gray-500">@advit_leather</p>
+            <a
+              href={instagramPostUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-sm sm:text-base text-gray-500 hover:text-[#C9A96E] transition-colors"
+            >
+              View our Instagram post
+            </a>
           </div>
 
-          <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
             {instagramPosts.map((post, index) => (
               <motion.div
                 key={post.id}
@@ -183,19 +191,19 @@ export default function About() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.05 }}
                 whileHover={{ scale: 1.05 }}
-                className="relative aspect-square rounded-lg sm:rounded-xl overflow-hidden cursor-pointer group shadow-sm hover:shadow-xl transition-all duration-300"
+                className="relative aspect-[9/16] rounded-lg sm:rounded-xl overflow-hidden cursor-pointer group shadow-sm hover:shadow-xl transition-all duration-300"
               >
-                <Link href="#">
-                  {/* eslint-disable-next-line @next/next/no-img-element -- Instagram image URLs are dynamic. */}
+                <a href={instagramPostUrl} target="_blank" rel="noreferrer">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- local Instagram gallery assets are user-managed. */}
                   <img
                     src={post.url}
                     alt={`Instagram post ${index + 1}`}
-                    className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
+                    className="object-contain w-full h-full transition-transform duration-500 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-2 sm:pb-4">
                     <span className="text-white text-[8px] sm:text-xs font-medium bg-black/40 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full">View</span>
                   </div>
-                </Link>
+                </a>
               </motion.div>
             ))}
           </div>

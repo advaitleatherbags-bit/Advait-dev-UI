@@ -140,16 +140,11 @@ export default function SignUp() {
 
       if (response.ok) {
         setSuccess(true)
-        // Keep only the token locally; AuthProvider loads the profile from /Auth/me.
-        if (data.token) {
-          localStorage.setItem('token', data.token)
-          window.dispatchEvent(new Event('advit:auth-updated'))
-          window.dispatchEvent(new Event('advit:commerce-updated'))
-        }
-        // Redirect to home after 2 seconds
+        // Token save NAHI karna - user abhi verified nahi hai
+        // Redirect to OTP verification page with email
         setTimeout(() => {
-          router.push('/')
-        }, 2000)
+          router.push(`/verify-otp?email=${encodeURIComponent(formData.emailAddress)}`)
+        }, 1500)
       } else {
         setError(data.message || 'Registration failed. Please try again.')
       }
@@ -181,7 +176,7 @@ export default function SignUp() {
             className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm mb-4 flex items-center gap-2"
           >
             <CheckCircleIcon className="h-5 w-5 text-green-500" />
-            Account created successfully! Redirecting...
+            Account created! Redirecting to OTP verification...
           </motion.div>
         )}
 
@@ -308,14 +303,14 @@ export default function SignUp() {
               />
             </div>
           </div>
+
           {/* State */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               State *
             </label>
             <div className="relative">
-              <MapPinIcon
-               className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <MapPinIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
                 name="State"

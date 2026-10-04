@@ -40,7 +40,9 @@ export default function Sale() {
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-red-500 mb-2 sm:mb-3 tracking-tight">
              Sale
           </h1>
-          <p className="text-sm sm:text-base text-gray-500">Up to 50% off on selected items</p>
+<p className="text-sm sm:text-base text-gray-500">
+  Crafted for Style & Everyday Luxury
+</p>
         </motion.div>
 
         {loading ? (

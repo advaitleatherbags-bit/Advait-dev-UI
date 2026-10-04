@@ -17,9 +17,12 @@ export default function NewArrivals() {
     try {
       // ✅ Token automatically added if exists
       const data = await api.get('/Products')
-      const sorted = data.sort((a, b) => 
-        new Date(b.createdAt) - new Date(a.createdAt)
-      )
+
+      // ✅ Sort by createdAt desc (newest first) and take ONLY 8 latest
+      const sorted = [...data]
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 8)
+
       setProducts(sorted)
     } catch (error) {
       console.error('Failed to fetch new arrivals:', error)
@@ -40,7 +43,9 @@ export default function NewArrivals() {
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-[#391F10] mb-2 sm:mb-3 tracking-tight">
             New Arrivals
           </h1>
-          <p className="text-sm sm:text-base text-gray-500">Be the first to shop our latest collection</p>
+          <p className="text-sm sm:text-base text-gray-500">
+            Be the first to shop our latest collection
+          </p>
         </motion.div>
 
         {loading ? (
@@ -53,12 +58,12 @@ export default function NewArrivals() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4 md:gap-6">
-            {products.map((product) => (
+            {products.map((product, index) => (
               <motion.div
                 key={product.productId}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
+                transition={{ duration: 0.4, delay: index * 0.05 }}
               >
                 <ProductCard product={product} />
               </motion.div>

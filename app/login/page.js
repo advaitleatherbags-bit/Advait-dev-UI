@@ -220,9 +220,9 @@ export default function Login() {
               />
               <span className="ml-2 text-sm text-gray-600">Remember me</span>
             </label>
-          <Link href="/forgot-password" className="text-sm text-[#C9A96E] hover:text-[#b8965a] transition-colors">
-  Forgot password?
-</Link>
+            <Link href="/forgot-password" className="text-sm text-[#C9A96E] hover:text-[#b8965a] transition-colors">
+              Forgot password?
+            </Link>
           </div>
 
           {/* Submit Button */}
@@ -250,7 +250,17 @@ export default function Login() {
           </motion.button>
         </form>
 
-        <div className="mt-6 text-center">
+        {/* Not Verified Yet Link */}
+        <div className="mt-4 text-center">
+          <p className="text-sm text-gray-500">
+            Not Verified yet?{' '}
+            <Link href="/verify-otp" className="text-[#C9A96E] hover:text-[#b8965a] font-semibold transition-colors">
+              Verify your email
+            </Link>
+          </p>
+        </div>
+
+        <div className="mt-6 text-center border-t border-gray-100 pt-4">
           <p className="text-gray-600 text-sm">
             Don&apos;t have an account?{' '}
             <Link href="/signup" className="text-[#C9A96E] hover:text-[#b8965a] font-semibold transition-colors">
