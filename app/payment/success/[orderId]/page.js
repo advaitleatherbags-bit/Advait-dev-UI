@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { CheckCircleIcon, HomeIcon, ShoppingBagIcon } from '@heroicons/react/24/outline'
+import { formatINR } from '../../../utils/currency'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
@@ -123,7 +124,7 @@ export default function PaymentSuccess() {
               <>
                 <div className="flex items-center justify-between text-sm mt-2">
                   <span className="text-gray-600">Amount</span>
-                  <span className="font-medium text-[#391F10]">${paymentStatus.amount}</span>
+                  <span className="font-medium text-[#391F10]">{formatINR(paymentStatus.amount)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm mt-2">
                   <span className="text-gray-600">Payment Method</span>
