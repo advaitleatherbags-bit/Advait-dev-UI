@@ -7,6 +7,7 @@ import { HeartIcon, ShoppingBagIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
+import { formatINR } from '../utils/currency'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
@@ -297,11 +298,11 @@ export default function ProductCard({ product }) {
         <div className="flex items-center justify-between mt-1 sm:mt-2 pt-1 sm:pt-2 border-t border-gray-50">
           <div className="flex flex-col sm:flex-row sm:items-center">
             <span className="text-sm sm:text-base font-bold text-[#391F10]">
-              ${productPrice || '0.00'}
+              {formatINR(productPrice || 0)}
             </span>
             {originalPrice && (
               <span className="text-[10px] sm:text-xs text-gray-400 line-through sm:ml-1.5">
-                ${originalPrice}
+                {formatINR(originalPrice)}
               </span>
             )}
           </div>
