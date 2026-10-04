@@ -26,7 +26,7 @@ const HOP_BY_HOP_HEADERS = new Set([
 
 async function proxyRequest(request, context) {
   if (!API_BASE) {
-    return Response.json({ error: 'API_URL is not configured' }, { status: 500 })
+    return Response.json({ error: 'API Url not configured' }, { status: 500 })
   }
 
   if (!ALLOWED_METHODS.has(request.method)) {
