@@ -349,13 +349,13 @@ export default function Profile() {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                                   {order.shiprocketOrderId && (
                                     <div>
-                                      <span className="text-gray-500">Shiprocket Order ID:</span>{' '}
+                                      <span className="text-gray-500"> Order ID:</span>{' '}
                                       <span className="font-semibold text-gray-800">{order.shiprocketOrderId}</span>
                                     </div>
                                   )}
                                   {order.shiprocketShipmentId && (
                                     <div>
-                                      <span className="text-gray-500">Shiprocket Shipment ID:</span>{' '}
+                                      <span className="text-gray-500">Shipment ID:</span>{' '}
                                       <span className="font-semibold text-gray-800">{order.shiprocketShipmentId}</span>
                                     </div>
                                   )}
