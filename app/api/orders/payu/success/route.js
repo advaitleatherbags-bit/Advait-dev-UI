@@ -2,7 +2,7 @@ const API_BASE = process.env.API_URL
 
 export async function POST(request) {
   if (!API_BASE) {
-    console.error('API_URL is not configured')
+    console.error('API Url not configured')
     return Response.redirect(new URL('/payment/failure?reason=configuration', request.url), 303)
   }
 
