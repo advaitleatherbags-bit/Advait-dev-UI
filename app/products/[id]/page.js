@@ -459,10 +459,10 @@ const id = params.id
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-3xl font-bold text-[#391F10]">${product.price}</span>
+            <span className="text-3xl font-bold text-[#391F10]">{formatINR(product.price)}</span>
             {product.discountPercentage > 0 && (
               <span className="text-lg text-gray-400 line-through">
-                ${(product.price / (1 - product.discountPercentage / 100)).toFixed(2)}
+                {formatINR(product.price / (1 - product.discountPercentage / 100))}
               </span>
             )}
           </div>

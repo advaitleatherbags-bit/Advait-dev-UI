@@ -224,11 +224,11 @@ export default function Wishlist() {
                   <div className="flex items-center justify-between mt-2">
                     <div>
                       <span className="text-lg font-bold text-[#391F10]">
-                        ${item.productPrice || '0.00'}
+                        {formatINR(item.productPrice || 0)}
                       </span>
                       {item.productDiscountPercentage > 0 && (
                         <span className="text-xs text-gray-400 line-through ml-1.5">
-                          ${(item.productPrice / (1 - item.productDiscountPercentage / 100)).toFixed(2)}
+                          {formatINR(item.productPrice / (1 - item.productDiscountPercentage / 100))}
                         </span>
                       )}
                     </div>
