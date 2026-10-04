@@ -8,7 +8,7 @@ const features = [
     id: 'feature-1',
     icon: TruckIcon,
     title: 'Free Shipping',
-    description: 'Free delivery on orders over ₹100'
+    description: 'Free delivery on orders over $100'
   },
   {
     id: 'feature-2',
