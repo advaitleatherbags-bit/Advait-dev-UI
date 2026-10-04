@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { XCircleIcon, HomeIcon, ArrowPathIcon, ShoppingBagIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL
+const API_BASE = '/api/backend'
 
 export default function PaymentFailure() {
   const params = useParams()

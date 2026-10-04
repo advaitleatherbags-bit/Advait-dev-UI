@@ -12,7 +12,7 @@ import {
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid'
 import { useAuth } from '../context/AuthContext'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL
+const API_BASE = '/api/backend'
 const getToken = () => {
   if (typeof window === 'undefined') return null
   return localStorage.getItem('token')

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { ArrowRightIcon } from '@heroicons/react/24/outline'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL
+const API_BASE = '/api/backend'
 
 export default function CheckoutButton({ total, disabled }) {
   const router = useRouter()
