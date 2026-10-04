@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
-import { formatINR } from '../utils/currency'
 import { 
   TrashIcon, 
   PlusIcon, 
@@ -327,7 +326,7 @@ export default function Cart() {
                               </div>
                             )}
                             <p className="text-sm font-medium text-[#391F10] mt-1">
-                              {formatINR(price)}
+                              ${price.toFixed(2)}
                             </p>
                           </div>
                           <button
@@ -355,7 +354,7 @@ export default function Cart() {
                             <PlusIcon className="h-4 w-4" />
                           </button>
                           <span className="text-sm font-bold text-[#391F10] ml-auto">
-                            {formatINR(price * item.qty)}
+                            ${(price * item.qty).toFixed(2)}
                           </span>
                         </div>
                       </div>
@@ -373,7 +372,7 @@ export default function Cart() {
               <div className="space-y-3 border-b border-gray-200 pb-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="font-medium">{formatINR(total)}</span>
+                  <span className="font-medium">${total.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Shipping</span>
@@ -382,7 +381,7 @@ export default function Cart() {
               </div>
               <div className="flex justify-between text-lg font-bold mt-4">
                 <span>Total</span>
-                <span className="text-[#391F10]">{formatINR(total)}</span>
+                <span className="text-[#391F10]">${total.toFixed(2)}</span>
               </div>
 
               {error && (

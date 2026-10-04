@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
-import { formatINR } from '../utils/currency'
 import { 
   PlusIcon, TrashIcon, PencilIcon, XMarkIcon,
   PhotoIcon, FolderIcon, TagIcon,
@@ -860,7 +859,7 @@ useEffect(() => {
                   {/* Price */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Price (₹) *
+                      Price ($) *
                       {hasError('price') && (
                         <span className="text-red-500 text-xs ml-1">{getError('price')}</span>
                       )}
@@ -1390,7 +1389,7 @@ useEffect(() => {
                       <td className="px-4 py-3 text-sm text-gray-500">
                         {categories.find(c => c.categoryId === p.categoryId)?.categoryName || '-'}
                       </td>
-                      <td className="px-4 py-3 text-sm font-medium text-[#391F10]">{formatINR(p.price)}</td>
+                      <td className="px-4 py-3 text-sm font-medium text-[#391F10]">${p.price}</td>
                       <td className="px-4 py-3 text-sm">
                         {p.discountPercentage > 0 ? (
                           <span className="text-red-500 font-medium">{p.discountPercentage}%</span>
@@ -1468,7 +1467,7 @@ useEffect(() => {
                         <td className="px-4 py-3 text-sm font-bold text-gray-800">{order.customerName|| 'N/A'}</td>
                         <td className="px-4 py-3 text-sm font-bold text-gray-800">{order.orderNumber}</td>
                         <td className="px-4 py-3 text-sm text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</td>
-                        <td className="px-4 py-3 text-sm font-medium text-[#391F10]">{formatINR(order.totalAmount)}</td>
+                        <td className="px-4 py-3 text-sm font-medium text-[#391F10]">INR {order.totalAmount.toFixed(2)}</td>
                         <td className="px-4 py-3 text-sm text-gray-500">
                           <div className="space-y-1">
                             {order.items.map((item) => (
