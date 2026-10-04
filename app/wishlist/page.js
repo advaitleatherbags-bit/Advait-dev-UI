@@ -11,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid'
 import { useAuth } from '../context/AuthContext'
+import { formatINR } from '../utils/currency'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 const getToken = () => {
@@ -218,11 +219,11 @@ export default function Wishlist() {
                   <div className="flex items-center justify-between mt-2">
                     <div>
                       <span className="text-lg font-bold text-[#391F10]">
-                        ${item.productPrice || '0.00'}
+                        {formatINR(item.productPrice || 0)}
                       </span>
                       {item.productDiscountPercentage > 0 && (
                         <span className="text-xs text-gray-400 line-through ml-1.5">
-                          ${(item.productPrice / (1 - item.productDiscountPercentage / 100)).toFixed(2)}
+                          {formatINR(item.productPrice / (1 - item.productDiscountPercentage / 100))}
                         </span>
                       )}
                     </div>

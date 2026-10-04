@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
+import { formatINR } from '../utils/currency'
 import {
   UserIcon,
   EnvelopeIcon,
@@ -274,7 +275,7 @@ export default function Profile() {
                         </div>
                         <div>
                           <p className="text-xs text-gray-400 font-medium">Total Amount</p>
-                          <p className="text-sm font-bold text-gray-800">INR {order.totalAmount.toFixed(2)}</p>
+                          <p className="text-sm font-bold text-gray-800">{formatINR(order.totalAmount)}</p>
                         </div>
                         <div>
                           <p className="text-xs text-gray-400 font-medium mb-0.5">Status</p>
@@ -334,8 +335,8 @@ export default function Profile() {
                                       <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
                                     </div>
                                     <div className="text-right">
-                                      <p className="text-sm font-bold text-gray-800">INR {item.price.toFixed(2)}</p>
-                                      <p className="text-xs text-gray-400">Total: INR {(item.price * item.quantity).toFixed(2)}</p>
+                                      <p className="text-sm font-bold text-gray-800">{formatINR(item.price)}</p>
+                                      <p className="text-xs text-gray-400">Total: {formatINR(item.price * item.quantity)}</p>
                                     </div>
                                   </div>
                                 ))}
