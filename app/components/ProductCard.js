@@ -7,6 +7,7 @@ import { HeartIcon, ShoppingBagIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
+import { useSnackbar } from './SnackbarProvider'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
@@ -16,6 +17,7 @@ export default function ProductCard({ product }) {
   const [addingToCart, setAddingToCart] = useState(false)
   const [loading, setLoading] = useState(true)
   const { user } = useAuth()
+  const { showSnackbar } = useSnackbar()
 
   const productId = product?.productId || product?.id
   const productName = product?.title || product?.name
@@ -89,10 +91,10 @@ export default function ProductCard({ product }) {
         setIsWishlisted(true)
         window.dispatchEvent(new Event('advit:commerce-updated'))
       } else {
-        alert('Failed to add to wishlist')
+        showSnackbar('Failed to add to wishlist')
       }
     } catch (error) {
-      alert('Network error. Please try again.')
+      showSnackbar('Network error. Please try again.')
     }
   }
 
@@ -124,12 +126,12 @@ export default function ProductCard({ product }) {
             setIsWishlisted(false)
             window.dispatchEvent(new Event('advit:commerce-updated'))
           } else {
-            alert('Failed to remove from wishlist')
+            showSnackbar('Failed to remove from wishlist')
           }
         }
       }
     } catch (error) {
-      alert('Network error. Please try again.')
+      showSnackbar('Network error. Please try again.')
     }
   }
 
@@ -176,13 +178,13 @@ export default function ProductCard({ product }) {
       })
 
       if (response.ok) {
-        alert('Added to cart successfully!')
+        showSnackbar('Added to cart successfully!', 'success')
         window.dispatchEvent(new Event('advit:commerce-updated'))
       } else {
-        alert('Failed to add to cart')
+        showSnackbar('Failed to add to cart')
       }
     } catch (error) {
-      alert('Network error. Please try again.')
+      showSnackbar('Network error. Please try again.')
     } finally {
       setAddingToCart(false)
     }

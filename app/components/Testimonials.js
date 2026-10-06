@@ -9,21 +9,21 @@ const testimonials = [
     name: 'Priya Sharma',
     role: 'Fashion Enthusiast',
     image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
-    content: 'ADVIT has completely transformed my wardrobe. The quality is exceptional and the designs are timeless.'
+    content: 'ADVAIT has completely transformed my wardrobe. The quality is exceptional and the designs are timeless.'
   },
   {
     id: 'test-2',
     name: 'Ananya Patel',
     role: 'Style Blogger',
     image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100',
-    content: 'I absolutely love the collection at ADVIT. Every piece is carefully curated and beautifully crafted.'
+    content: 'I absolutely love the collection at ADVAIT. Every piece is carefully curated and beautifully crafted.'
   },
   {
     id: 'test-3',
     name: 'Meera Reddy',
     role: 'Corporate Professional',
     image: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100',
-    content: 'The perfect blend of style and comfort. I always get compliments when I wear ADVIT.'
+    content: 'The perfect blend of style and comfort. I always get compliments when I wear ADVAIT.'
   }
 ]
 
@@ -39,7 +39,7 @@ export default function Testimonials() {
           className="text-center mb-12"
         >
           <h2 className="section-title">What Our Customers Say</h2>
-          <p className="section-subtitle">Join thousands of satisfied customers who trust ADVIT</p>
+          <p className="section-subtitle">Join thousands of satisfied customers who trust ADVAIT</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

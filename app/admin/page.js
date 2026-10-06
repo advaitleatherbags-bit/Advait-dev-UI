@@ -4,10 +4,11 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
+import { useSnackbar } from '../components/SnackbarProvider'
 import { 
   PlusIcon, TrashIcon, PencilIcon, XMarkIcon,
   PhotoIcon, FolderIcon, TagIcon,
-  CheckCircleIcon, ExclamationCircleIcon,
+  CheckCircleIcon,
   CloudArrowUpIcon, ShoppingBagIcon
 } from '@heroicons/react/24/outline'
 
@@ -16,6 +17,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL
 export default function Admin() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
+  const { showSnackbar } = useSnackbar()
   
   // ==================== ADMIN ROLE CHECK ====================
   const [isAuthorized, setIsAuthorized] = useState(false)
@@ -48,7 +50,9 @@ export default function Admin() {
   const [showCategoryForm, setShowCategoryForm] = useState(false)
   const [categoryName, setCategoryName] = useState('')
   const [success, setSuccess] = useState('')
-  const [error, setError] = useState('')
+  const setError = (message) => {
+    if (message) showSnackbar(message)
+  }
   const [validationErrors, setValidationErrors] = useState({})
   const [imageFiles, setImageFiles] = useState([])
   const [imagePreviews, setImagePreviews] = useState([])
@@ -720,13 +724,6 @@ useEffect(() => {
             {success}
           </div>
         )}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4 flex items-center gap-2">
-            <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
-            {error}
-          </div>
-        )}
-
         {/* REST OF THE CODE - Category Form, Product Form, Tables */}
         {/* ... Keep all the existing JSX for forms and tables ... */}
         

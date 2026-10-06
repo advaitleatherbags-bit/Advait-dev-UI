@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
+import { useSnackbar } from '../components/SnackbarProvider'
 import { 
   TrashIcon, 
   PlusIcon, 
@@ -15,7 +17,9 @@ import {
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
 export default function Cart() {
+  const router = useRouter()
   const { user } = useAuth()
+  const { showSnackbar } = useSnackbar()
   const [cartItems, setCartItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -56,11 +60,14 @@ export default function Cart() {
         calculateTotal(items)
       } else if (response.status === 401) {
         setError('Please login to view cart')
+        showSnackbar('Please login to view cart')
       } else {
         setError('Failed to load cart')
+        showSnackbar('Failed to load cart')
       }
     } catch (err) {
       setError('Network error. Please try again.')
+      showSnackbar('Network error. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -95,10 +102,10 @@ export default function Cart() {
       if (response.ok) {
         await fetchCart()
       } else {
-        alert('Failed to update quantity')
+        showSnackbar('Failed to update quantity')
       }
     } catch (err) {
-      alert('Network error. Please try again.')
+      showSnackbar('Network error. Please try again.')
     } finally {
       setUpdating(false)
     }
@@ -119,29 +126,27 @@ export default function Cart() {
       if (response.ok) {
         await fetchCart()
       } else {
-        alert('Failed to remove item')
+        showSnackbar('Failed to remove item')
       }
     } catch (err) {
-      alert('Network error. Please try again.')
+      showSnackbar('Network error. Please try again.')
     }
   }
 
   // ✅ CHECKOUT - POST /api/orders/checkout
   const handleCheckout = async () => {
     if (!getToken()) {
-      alert('Please login to checkout')
-      window.location.href = '/login'
+      showSnackbar('Please login to checkout')
+      router.push('/login')
       return
     }
 
     if (cartItems.length === 0) {
-      alert('Your cart is empty')
+      showSnackbar('Your cart is empty')
       return
     }
 
     setCheckoutLoading(true)
-    setError('')
-
     try {
       const response = await fetch(`${API_BASE}/orders/checkout`, {
         method: 'POST',
@@ -156,10 +161,10 @@ export default function Cart() {
         redirectToPayU(data)
       } else {
         const err = await response.text()
-        setError(err || 'Failed to initiate checkout')
+        showSnackbar(err || 'Failed to initiate checkout')
       }
     } catch (err) {
-      setError('Network error. Please try again.')
+      showSnackbar('Network error. Please try again.')
     } finally {
       setCheckoutLoading(false)
     }
@@ -243,7 +248,7 @@ export default function Cart() {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16 text-center bg-white min-h-screen">
         <h2 className="text-2xl font-bold text-red-500 mb-2">Error</h2>
-        <p className="text-gray-600">{error}</p>
+        <p className="text-gray-600">We couldn&apos;t load your cart. Please try again.</p>
         <button 
           onClick={() => window.location.href = '/'}
           className="mt-4 bg-[#391F10] text-white px-6 py-2 rounded-lg hover:bg-[#2a1509] transition-all"
@@ -384,12 +389,6 @@ export default function Cart() {
                 <span className="text-[#391F10]">${total.toFixed(2)}</span>
               </div>
 
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-xs mt-3">
-                  {error}
-                </div>
-              )}
-              
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}

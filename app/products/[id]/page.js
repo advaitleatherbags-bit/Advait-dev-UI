@@ -6,11 +6,13 @@ import { HeartIcon, ShoppingBagIcon, ChevronLeftIcon, ChevronRightIcon } from '@
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../../context/AuthContext'
+import { useSnackbar } from '../../components/SnackbarProvider'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 const getToken = () => localStorage.getItem('token')
 
 export default function ProductDetail() {
+const { showSnackbar } = useSnackbar()
 const params = useParams()
 const router = useRouter()
 const id = params.id
@@ -74,13 +76,17 @@ const id = params.id
         setSelectedSize(sizeArray[0] || '')
       } else if (response.status === 401) {
         setError('Please login to view product details')
+        showSnackbar('Please login to view product details')
       } else if (response.status === 404) {
         setError('Product not found')
+        showSnackbar('Product not found')
       } else {
         setError('Failed to load product')
+        showSnackbar('Failed to load product')
       }
     } catch {
       setError('Network error. Please try again.')
+      showSnackbar('Network error. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -154,7 +160,7 @@ const id = params.id
         }
       }
     } catch {
-      alert('Failed to update wishlist. Please try again.')
+      showSnackbar('Failed to update wishlist. Please try again.')
     }
   }
 
@@ -189,14 +195,14 @@ const id = params.id
       })
 
       if (response.ok) {
-        alert('Added to cart successfully!')
+        showSnackbar('Added to cart successfully!', 'success')
         window.dispatchEvent(new Event('advit:commerce-updated'))
       } else {
         const err = await response.text()
-        alert('Failed to add to cart: ' + err)
+        showSnackbar('Failed to add to cart: ' + err)
       }
     } catch {
-      alert('Network error. Please try again.')
+      showSnackbar('Network error. Please try again.')
     } finally {
       setAddingToCart(false)
     }
@@ -213,7 +219,7 @@ const id = params.id
   if (error) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-        <h2 className="text-2xl font-bold text-red-500 mb-2">⚠️ {error}</h2>
+        <h2 className="text-2xl font-bold text-red-500 mb-2">Unable to load this product</h2>
         {error.includes('login') && (
           <a 
             href="/login"

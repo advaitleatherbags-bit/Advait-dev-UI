@@ -4,9 +4,9 @@ import { useState, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useSnackbar } from '../components/SnackbarProvider'
 import { 
   CheckCircleIcon, 
-  ExclamationCircleIcon,
   EnvelopeIcon,
   ShieldCheckIcon
 } from '@heroicons/react/24/outline'
@@ -14,13 +14,13 @@ import {
 function VerifyOtpContent() {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL
   const router = useRouter()
+  const { showSnackbar } = useSnackbar()
   const searchParams = useSearchParams()
   const emailFromQuery = searchParams.get('email') || ''
 
   const [emailInput, setEmailInput] = useState(emailFromQuery)
   const [otp, setOtp] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [resending, setResending] = useState(false)
   const [resendMsg, setResendMsg] = useState('')
@@ -29,20 +29,19 @@ function VerifyOtpContent() {
     e.preventDefault()
 
     if (!emailInput.trim()) {
-      setError('Email address is required')
+      showSnackbar('Email address is required')
       return
     }
     if (!otp.trim()) {
-      setError('Please enter the OTP')
+      showSnackbar('Please enter the OTP')
       return
     }
     if (otp.length < 4) {
-      setError('Please enter a valid OTP')
+      showSnackbar('Please enter a valid OTP')
       return
     }
 
     setLoading(true)
-    setError('')
     setResendMsg('')
 
     try {
@@ -63,10 +62,10 @@ function VerifyOtpContent() {
           router.push('/login')
         }, 1500)
       } else {
-        setError(data.message || 'Invalid OTP. Please try again.')
+        showSnackbar(data.message || 'Invalid OTP. Please try again.')
       }
     } catch {
-      setError('Network error. Please check your connection.')
+      showSnackbar('Network error. Please check your connection.')
     } finally {
       setLoading(false)
     }
@@ -74,12 +73,11 @@ function VerifyOtpContent() {
 
   const handleResend = async () => {
     if (!emailInput.trim()) {
-      setError('Please enter your email address first')
+      showSnackbar('Please enter your email address first')
       return
     }
 
     setResending(true)
-    setError('')
     setResendMsg('')
 
     try {
@@ -94,10 +92,10 @@ function VerifyOtpContent() {
       if (response.ok) {
         setResendMsg('OTP resent successfully! Check your email.')
       } else {
-        setError(data.message || 'Failed to resend OTP')
+        showSnackbar(data.message || 'Failed to resend OTP')
       }
     } catch {
-      setError('Network error. Please check your connection.')
+      showSnackbar('Network error. Please check your connection.')
     } finally {
       setResending(false)
     }
@@ -134,17 +132,6 @@ function VerifyOtpContent() {
           </motion.div>
         )}
 
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4 flex items-center gap-2"
-          >
-            <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
-            {error}
-          </motion.div>
-        )}
-
         {resendMsg && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -167,7 +154,7 @@ function VerifyOtpContent() {
                 <input
                   type="email"
                   value={emailInput}
-                  onChange={(e) => { setEmailInput(e.target.value); setError('') }}
+                onChange={(e) => setEmailInput(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent text-sm"
                   placeholder="Enter your registered email"
                   required
@@ -192,7 +179,7 @@ function VerifyOtpContent() {
               <input
                 type="text"
                 value={otp}
-                onChange={(e) => { setOtp(e.target.value.replace(/\D/g, '')); setError('') }}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent text-sm tracking-widest text-center font-semibold"
                 placeholder="Enter OTP"
                 maxLength={6}

@@ -5,8 +5,10 @@ import { motion } from 'framer-motion'
 import HeroSection from './components/HeroSection'
 import ProductCard from './components/ProductCard'
 import { api } from './utils/api'
+import { useSnackbar } from './components/SnackbarProvider'
 
 export default function Home() {
+  const { showSnackbar } = useSnackbar()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -20,6 +22,7 @@ export default function Home() {
       setProducts(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Failed to fetch products:', error)
+      showSnackbar('Could not load products. Please try again.')
     } finally {
       setLoading(false)
     }

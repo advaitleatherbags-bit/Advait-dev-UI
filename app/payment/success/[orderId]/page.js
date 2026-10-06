@@ -5,10 +5,12 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { CheckCircleIcon, HomeIcon, ShoppingBagIcon } from '@heroicons/react/24/outline'
+import { useSnackbar } from '../../../components/SnackbarProvider'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
 export default function PaymentSuccess() {
+  const { showSnackbar } = useSnackbar()
   const params = useParams()
   const router = useRouter()
   const orderId = params.orderId
@@ -45,11 +47,14 @@ export default function PaymentSuccess() {
         }
       } else if (response.status === 404) {
         setError('Order not found')
+        showSnackbar('Order not found')
       } else {
         setError('Failed to fetch payment status')
+        showSnackbar('Failed to fetch payment status')
       }
     } catch (error) {
       setError('Network error. Please try again.')
+      showSnackbar('Network error. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -83,7 +88,7 @@ export default function PaymentSuccess() {
         <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
           <div className="text-6xl mb-4">⚠️</div>
           <h2 className="text-xl font-bold text-red-600 mb-2">Error</h2>
-          <p className="text-gray-600 text-sm mb-6">{error}</p>
+          <p className="text-gray-600 text-sm mb-6">We couldn&apos;t verify the payment status. Please try again.</p>
           <Link href="/" className="bg-[#391F10] text-white px-6 py-2 rounded-lg hover:bg-[#2a1509] transition-all">
             Go Home
           </Link>

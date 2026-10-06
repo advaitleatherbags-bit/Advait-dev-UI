@@ -14,14 +14,60 @@ import {
   EyeIcon,
   EyeSlashIcon,
   CheckCircleIcon,
-  ExclamationCircleIcon,
   MapPinIcon,
   BuildingOfficeIcon
 } from '@heroicons/react/24/outline'
+import { useSnackbar } from '../components/SnackbarProvider'
+
+async function readResponseBody(response) {
+  const text = await response.text()
+  if (!text) return null
+
+  try {
+    return JSON.parse(text)
+  } catch {
+    return text
+  }
+}
+
+function getBackendErrorMessage(body) {
+  if (typeof body === 'string') {
+    const message = body.trim()
+    return message && !/<(?:!doctype|html)[\s>]/i.test(message)
+      ? message
+      : 'Registration failed. Please try again.'
+  }
+
+  if (Array.isArray(body)) {
+    const messages = body.filter((item) => typeof item === 'string' && item.trim())
+    if (messages.length) return messages.join(' ')
+  }
+
+  const message = body?.message || body?.detail || body?.error || body?.errorMessage
+  if (typeof message === 'string' && message.trim()) return message.trim()
+
+  const validationErrors = body?.errors
+  if (Array.isArray(validationErrors)) {
+    const messages = validationErrors.filter((item) => typeof item === 'string' && item.trim())
+    if (messages.length) return messages.join(' ')
+  }
+
+  if (validationErrors && typeof validationErrors === 'object') {
+    const messages = Object.values(validationErrors)
+      .flat(Infinity)
+      .filter((item) => typeof item === 'string' && item.trim())
+    if (messages.length) return [...new Set(messages)].join(' ')
+  }
+
+  if (typeof body?.title === 'string' && body.title.trim()) return body.title.trim()
+
+  return 'Registration failed. Please try again.'
+}
 
 export default function SignUp() {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL
   const router = useRouter()
+  const { showSnackbar } = useSnackbar()
   const { user, token, loading: authLoading } = useAuth()
   const [formData, setFormData] = useState({
     username: '',
@@ -35,7 +81,6 @@ export default function SignUp() {
   })
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
   useEffect(() => {
@@ -59,52 +104,51 @@ export default function SignUp() {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
-    setError('')
   }
 
   const validateForm = () => {
     if (!formData.username.trim()) {
-      setError('Username is required')
+      showSnackbar('Username is required')
       return false
     }
     if (!formData.emailAddress.trim()) {
-      setError('Email address is required')
+      showSnackbar('Email address is required')
       return false
     }
     if (!formData.emailAddress.includes('@')) {
-      setError('Please enter a valid email address')
+      showSnackbar('Please enter a valid email address')
       return false
     }
     if (!formData.mobileNumber.trim()) {
-      setError('Mobile number is required')
+      showSnackbar('Mobile number is required')
       return false
     }
     if (formData.mobileNumber.length < 10) {
-      setError('Please enter a valid mobile number')
+      showSnackbar('Please enter a valid mobile number')
       return false
     }
     if (!formData.password.trim()) {
-      setError('Password is required')
+      showSnackbar('Password is required')
       return false
     }
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters')
+      showSnackbar('Password must be at least 6 characters')
       return false
     }
     if (!formData.Address.trim()) {
-      setError('Address is required')
+      showSnackbar('Address is required')
       return false
     }
     if (!formData.State.trim()) {
-      setError('State is required')
+      showSnackbar('State is required')
       return false
     }
     if (!formData.City.trim()) {
-      setError('City is required')
+      showSnackbar('City is required')
       return false
     }
     if (!formData.Pincode.trim()) {
-      setError('Pincode is required')
+      showSnackbar('Pincode is required')
       return false
     }
     return true
@@ -116,8 +160,6 @@ export default function SignUp() {
     if (!validateForm()) return
 
     setLoading(true)
-    setError('')
-
     try {
       const response = await fetch(`${API_BASE}/Auth/register`, {
         method: 'POST',
@@ -136,7 +178,7 @@ export default function SignUp() {
         })
       })
 
-      const data = await response.json()
+      const data = await readResponseBody(response)
 
       if (response.ok) {
         setSuccess(true)
@@ -146,10 +188,10 @@ export default function SignUp() {
           router.push(`/verify-otp?email=${encodeURIComponent(formData.emailAddress)}`)
         }, 1500)
       } else {
-        setError(data.message || 'Registration failed. Please try again.')
+        showSnackbar(getBackendErrorMessage(data))
       }
     } catch {
-      setError('Network error. Please check your connection.')
+      showSnackbar('Network error. Please check your connection.')
     } finally {
       setLoading(false)
     }
@@ -165,7 +207,7 @@ export default function SignUp() {
       >
         <div className="text-center mb-6 sm:mb-8">
           <h2 className="text-2xl sm:text-3xl font-bold text-[#391F10]">Create Account</h2>
-          <p className="text-gray-500 text-sm sm:text-base mt-1">Join the ADVIT family</p>
+          <p className="text-gray-500 text-sm sm:text-base mt-1">Join the ADVAIT family</p>
         </div>
 
         {/* Success Message */}
@@ -177,18 +219,6 @@ export default function SignUp() {
           >
             <CheckCircleIcon className="h-5 w-5 text-green-500" />
             Account created! Redirecting to OTP verification...
-          </motion.div>
-        )}
-
-        {/* Error Message */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4 flex items-center gap-2"
-          >
-            <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
-            {error}
           </motion.div>
         )}
 
@@ -397,6 +427,7 @@ export default function SignUp() {
           </p>
         </div>
       </motion.div>
+
     </div>
   )
 }

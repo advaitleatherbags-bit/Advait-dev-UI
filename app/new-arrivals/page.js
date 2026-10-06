@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import ProductCard from '../components/ProductCard'
 import { api } from '../utils/api'
+import { useSnackbar } from '../components/SnackbarProvider'
 
 export default function NewArrivals() {
+  const { showSnackbar } = useSnackbar()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -26,6 +28,7 @@ export default function NewArrivals() {
       setProducts(sorted)
     } catch (error) {
       console.error('Failed to fetch new arrivals:', error)
+      showSnackbar('Could not load new arrivals. Please try again.')
     } finally {
       setLoading(false)
     }

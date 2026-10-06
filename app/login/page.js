@@ -5,12 +5,12 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
+import { useSnackbar } from '../components/SnackbarProvider'
 import { 
   EnvelopeIcon, 
   LockClosedIcon, 
   EyeIcon, 
   EyeSlashIcon,
-  ExclamationCircleIcon,
   CheckCircleIcon
 } from '@heroicons/react/24/outline'
 
@@ -18,13 +18,13 @@ export default function Login() {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL
   const router = useRouter()
   const { user, token, loading: authLoading } = useAuth()
+  const { showSnackbar } = useSnackbar()
   const [formData, setFormData] = useState({
     identifier: '',
     password: ''
   })
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
   useEffect(() => {
@@ -48,20 +48,19 @@ export default function Login() {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
-    setError('')
   }
 
   const validateForm = () => {
     if (!formData.identifier.trim()) {
-      setError('Email or mobile number is required')
+      showSnackbar('Email or mobile number is required')
       return false
     }
     if (!formData.password.trim()) {
-      setError('Password is required')
+      showSnackbar('Password is required')
       return false
     }
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters')
+      showSnackbar('Password must be at least 6 characters')
       return false
     }
     return true
@@ -73,7 +72,6 @@ export default function Login() {
     if (!validateForm()) return
 
     setLoading(true)
-    setError('')
     setSuccess(false)
 
     try {
@@ -109,13 +107,13 @@ export default function Login() {
             }
           }, 1500)
         } else {
-          setError('Invalid response from server')
+          showSnackbar('Invalid response from server')
         }
       } else {
-        setError(data.message || 'Invalid email/mobile or password')
+        showSnackbar(data.message || 'Invalid email/mobile or password')
       }
     } catch {
-      setError('Network error. Please check your connection.')
+      showSnackbar('Network error. Please check your connection.')
     } finally {
       setLoading(false)
     }
@@ -143,18 +141,6 @@ export default function Login() {
           >
             <CheckCircleIcon className="h-5 w-5 text-green-500" />
             Login successful! Redirecting...
-          </motion.div>
-        )}
-
-        {/* Error Message */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4 flex items-center gap-2"
-          >
-            <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
-            {error}
           </motion.div>
         )}
 

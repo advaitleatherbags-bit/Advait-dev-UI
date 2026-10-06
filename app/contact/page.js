@@ -41,7 +41,6 @@ export default function Contact() {
   return (
     <div className="min-h-screen py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Why Choose ADVIT? Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -49,7 +48,7 @@ export default function Contact() {
           className="text-center mb-12"
         >
           <h1 className="text-4xl md:text-6xl font-bold text-[#391F10] mb-4 tracking-tight">
-            Why Choose ADVIT?
+            Why Choose ADVAIT?
           </h1>
           <p className="text-gray-500 text-lg max-w-2xl mx-auto">
             We&apos;re committed to providing the best shopping experience

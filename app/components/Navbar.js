@@ -218,7 +218,7 @@ export default function Navbar() {
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: 'spring', stiffness: 400 }}
               >
-                ADVIT
+                ADVAIT
               </motion.h1>
 
               <span className="absolute -bottom-1.5 left-0 w-0 h-0.5 bg-[#C9A96E] transition-all duration-500 group-hover:w-full" />

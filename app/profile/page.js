@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
+import { useSnackbar } from '../components/SnackbarProvider'
 import {
   UserIcon,
   EnvelopeIcon,
@@ -22,6 +23,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL
 export default function Profile() {
   const router = useRouter()
   const { user, token, logout, loading: authLoading } = useAuth()
+  const { showSnackbar } = useSnackbar()
   
   const [orders, setOrders] = useState([])
   const [loadingOrders, setLoadingOrders] = useState(true)
@@ -42,10 +44,14 @@ export default function Profile() {
         const data = await res.json()
         setOrders(Array.isArray(data) ? data : [])
       } else {
-        setError('Failed to fetch your orders. Please try again.')
+        const message = 'Failed to fetch your orders. Please try again.'
+        setError(message)
+        showSnackbar(message)
       }
     } catch (err) {
-      setError('Network error. Failed to load orders.')
+      const message = 'Network error. Failed to load orders.'
+      setError(message)
+      showSnackbar(message)
     } finally {
       setLoadingOrders(false)
     }
@@ -107,10 +113,10 @@ export default function Profile() {
         redirectToPayU(data)
       } else {
         const errMsg = await response.text()
-        alert(errMsg || 'Failed to retry payment. Please try again.')
+        showSnackbar(errMsg || 'Failed to retry payment. Please try again.')
       }
     } catch (err) {
-      alert('Network error. Please try again.')
+      showSnackbar('Network error. Please try again.')
     } finally {
       setRetryingOrderId(null)
     }
@@ -231,7 +237,7 @@ export default function Profile() {
             </div>
           ) : error ? (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-4 rounded-xl text-sm text-center">
-              {error}
+              We couldn&apos;t load your orders. Please try again.
             </div>
           ) : orders.length === 0 ? (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center space-y-4">

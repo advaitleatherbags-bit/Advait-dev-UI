@@ -5,6 +5,7 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import { AuthProvider } from './context/AuthContext'
 import ApiStatusChecker from './components/ApiStatusChecker'
+import { SnackbarProvider } from './components/SnackbarProvider'
 
 const dmSans = DM_Sans({
   subsets: ['latin'],
@@ -22,13 +23,15 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={dmSans.variable}>
       <body className="font-sans antialiased bg-[#faf6f3]">
-        <ApiStatusChecker>
-          <AuthProvider>
-            <Navbar />
-            <main className="min-h-screen pt-16">{children}</main>
-            <Footer />
-          </AuthProvider>
-        </ApiStatusChecker>
+        <SnackbarProvider>
+          <ApiStatusChecker>
+            <AuthProvider>
+              <Navbar />
+              <main className="min-h-screen pt-16">{children}</main>
+              <Footer />
+            </AuthProvider>
+          </ApiStatusChecker>
+        </SnackbarProvider>
       </body>
     </html>
   )
