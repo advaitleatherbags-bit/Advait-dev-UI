@@ -14,6 +14,9 @@ import {
   CheckCircleIcon
 } from '@heroicons/react/24/outline'
 
+const GMAIL_PATTERN = /^[A-Z0-9._%+-]+@gmail\.com$/i
+const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/
+
 export default function Login() {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL
   const router = useRouter()
@@ -52,15 +55,19 @@ export default function Login() {
 
   const validateForm = () => {
     if (!formData.identifier.trim()) {
-      showSnackbar('Email or mobile number is required')
+      showSnackbar('Email address is required')
+      return false
+    }
+    if (!GMAIL_PATTERN.test(formData.identifier.trim())) {
+      showSnackbar('Please enter a valid @gmail.com email address')
       return false
     }
     if (!formData.password.trim()) {
       showSnackbar('Password is required')
       return false
     }
-    if (formData.password.length < 6) {
-      showSnackbar('Password must be at least 6 characters')
+    if (!PASSWORD_PATTERN.test(formData.password)) {
+      showSnackbar('Password must be at least 8 characters and include letters and numbers')
       return false
     }
     return true
@@ -110,7 +117,7 @@ export default function Login() {
           showSnackbar('Invalid response from server')
         }
       } else {
-        showSnackbar(data.message || 'Invalid email/mobile or password')
+        showSnackbar(data.message || 'Invalid email or password')
       }
     } catch {
       showSnackbar('Network error. Please check your connection.')
@@ -145,10 +152,10 @@ export default function Login() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Email/Mobile */}
+          {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email or Mobile Number *
+              Email Address *
             </label>
             <div className="relative">
               <EnvelopeIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -158,7 +165,9 @@ export default function Login() {
                 value={formData.identifier}
                 onChange={handleChange}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
-                placeholder="user@example.com or 6487968651"
+                placeholder="user@gmail.com"
+                pattern="[A-Za-z0-9._%+-]+@gmail[.]com"
+                title="Enter a valid @gmail.com email address"
                 required
                 disabled={loading || success}
               />
@@ -179,6 +188,8 @@ export default function Login() {
                 onChange={handleChange}
                 className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
                 placeholder="Enter your password"
+                minLength={8}
+                title="Use at least 8 characters, including letters and numbers"
                 required
                 disabled={loading || success}
               />

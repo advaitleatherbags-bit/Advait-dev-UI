@@ -128,17 +128,6 @@ export default function Navbar() {
   }, [user])
 
   useEffect(() => {
-    if (!user) return
-
-    const interval = setInterval(() => {
-      fetchCartCount()
-      fetchWishlistCount()
-    }, 10000)
-
-    return () => clearInterval(interval)
-  }, [user])
-
-  useEffect(() => {
     const refreshBadges = () => {
       // Refresh counts after sign in or payment return.
       fetchCartCount()

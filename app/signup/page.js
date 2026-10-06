@@ -19,6 +19,12 @@ import {
 } from '@heroicons/react/24/outline'
 import { useSnackbar } from '../components/SnackbarProvider'
 
+const GMAIL_PATTERN = /^[A-Z0-9._%+-]+@gmail\.com$/i
+const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/
+const MIN_LOCATION_LENGTH = 3
+const MAX_ADDRESS_LENGTH = 80
+const MAX_LOCATION_LENGTH = 20
+
 async function readResponseBody(response) {
   const text = await response.text()
   if (!text) return null
@@ -103,7 +109,12 @@ export default function SignUp() {
   }
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
+    const { name, value } = e.target
+    const nextValue = ['mobileNumber', 'Pincode'].includes(name)
+      ? value.replace(/\D/g, '')
+      : value
+
+    setFormData({ ...formData, [name]: nextValue })
   }
 
   const validateForm = () => {
@@ -115,40 +126,52 @@ export default function SignUp() {
       showSnackbar('Email address is required')
       return false
     }
-    if (!formData.emailAddress.includes('@')) {
-      showSnackbar('Please enter a valid email address')
+    if (!GMAIL_PATTERN.test(formData.emailAddress.trim())) {
+      showSnackbar('Please enter a valid @gmail.com email address')
       return false
     }
     if (!formData.mobileNumber.trim()) {
       showSnackbar('Mobile number is required')
       return false
     }
-    if (formData.mobileNumber.length < 10) {
-      showSnackbar('Please enter a valid mobile number')
+    if (!/^\d{10}$/.test(formData.mobileNumber)) {
+      showSnackbar('Mobile number must contain exactly 10 digits')
       return false
     }
     if (!formData.password.trim()) {
       showSnackbar('Password is required')
       return false
     }
-    if (formData.password.length < 6) {
-      showSnackbar('Password must be at least 6 characters')
+    if (!PASSWORD_PATTERN.test(formData.password)) {
+      showSnackbar('Password must be at least 8 characters and include letters and numbers')
       return false
     }
-    if (!formData.Address.trim()) {
-      showSnackbar('Address is required')
+    if (formData.Address.trim().length < MIN_LOCATION_LENGTH) {
+      showSnackbar(`Address must be at least ${MIN_LOCATION_LENGTH} characters`)
       return false
     }
-    if (!formData.State.trim()) {
-      showSnackbar('State is required')
+    if (formData.Address.length > MAX_ADDRESS_LENGTH) {
+      showSnackbar(`Address cannot exceed ${MAX_ADDRESS_LENGTH} characters`)
       return false
     }
-    if (!formData.City.trim()) {
-      showSnackbar('City is required')
+    if (formData.State.trim().length < MIN_LOCATION_LENGTH) {
+      showSnackbar(`State must be at least ${MIN_LOCATION_LENGTH} characters`)
       return false
     }
-    if (!formData.Pincode.trim()) {
-      showSnackbar('Pincode is required')
+    if (formData.State.length > MAX_LOCATION_LENGTH) {
+      showSnackbar(`State cannot exceed ${MAX_LOCATION_LENGTH} characters`)
+      return false
+    }
+    if (formData.City.trim().length < MIN_LOCATION_LENGTH) {
+      showSnackbar(`City must be at least ${MIN_LOCATION_LENGTH} characters`)
+      return false
+    }
+    if (formData.City.length > MAX_LOCATION_LENGTH) {
+      showSnackbar(`City cannot exceed ${MAX_LOCATION_LENGTH} characters`)
+      return false
+    }
+    if (!/^\d{6,8}$/.test(formData.Pincode)) {
+      showSnackbar('Pincode must contain between 6 and 8 digits')
       return false
     }
     return true
@@ -256,7 +279,9 @@ export default function SignUp() {
                 value={formData.emailAddress}
                 onChange={handleChange}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
-                placeholder="user@example.com"
+                placeholder="user@gmail.com"
+                pattern="[A-Za-z0-9._%+-]+@gmail[.]com"
+                title="Enter a valid @gmail.com email address"
                 required
                 disabled={loading || success}
               />
@@ -277,6 +302,10 @@ export default function SignUp() {
                 onChange={handleChange}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
                 placeholder="6487968651"
+                inputMode="numeric"
+                pattern="[0-9]{10}"
+                maxLength={10}
+                title="Enter exactly 10 digits"
                 required
                 disabled={loading || success}
               />
@@ -296,7 +325,9 @@ export default function SignUp() {
                 value={formData.password}
                 onChange={handleChange}
                 className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
-                placeholder="Min 6 characters"
+                placeholder="Minimum 8 characters, letters and numbers"
+                minLength={8}
+                title="Use at least 8 characters, including letters and numbers"
                 required
                 disabled={loading || success}
               />
@@ -328,6 +359,8 @@ export default function SignUp() {
                 rows="2"
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
                 placeholder="Enter shipping address"
+                minLength={MIN_LOCATION_LENGTH}
+                maxLength={MAX_ADDRESS_LENGTH}
                 required
                 disabled={loading || success}
               />
@@ -348,6 +381,8 @@ export default function SignUp() {
                 onChange={handleChange}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
                 placeholder="Enter state"
+                minLength={MIN_LOCATION_LENGTH}
+                maxLength={MAX_LOCATION_LENGTH}
                 required
                 disabled={loading || success}
               />
@@ -368,6 +403,8 @@ export default function SignUp() {
                 onChange={handleChange}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
                 placeholder="Enter city"
+                minLength={MIN_LOCATION_LENGTH}
+                maxLength={MAX_LOCATION_LENGTH}
                 required
                 disabled={loading || success}
               />
@@ -388,6 +425,10 @@ export default function SignUp() {
                 onChange={handleChange}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
                 placeholder="Enter pincode"
+                inputMode="numeric"
+                pattern="[0-9]{6,8}"
+                maxLength={8}
+                title="Enter between 6 and 8 digits"
                 required
                 disabled={loading || success}
               />

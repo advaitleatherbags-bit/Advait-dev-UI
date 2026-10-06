@@ -46,7 +46,6 @@ export default function Cart() {
     setLoading(true)
     setError('')
     try {
-      console.log('📦 Fetching cart for userId:', userId)
       const response = await fetch(`${API_BASE}/Cart/user/${userId}`, {
         headers: {
           'Authorization': `Bearer ${getToken()}`
@@ -100,6 +99,7 @@ export default function Cart() {
       })
 
       if (response.ok) {
+        window.dispatchEvent(new Event('advit:commerce-updated'))
         await fetchCart()
       } else {
         showSnackbar('Failed to update quantity')
@@ -124,6 +124,7 @@ export default function Cart() {
       })
 
       if (response.ok) {
+        window.dispatchEvent(new Event('advit:commerce-updated'))
         await fetchCart()
       } else {
         showSnackbar('Failed to remove item')
