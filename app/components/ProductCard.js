@@ -284,7 +284,7 @@ export default function ProductCard({ product }) {
         </motion.button>
       </div>
 
-      <div className="p-2 sm:p-3 flex-1 flex flex-col">
+      <div className="min-h-28 p-2 sm:min-h-32 sm:p-3 flex-1 flex flex-col">
         <div className="mb-1 flex-1">
           <p className="text-[8px] sm:text-[10px] text-gray-400 uppercase tracking-wider font-medium">
             {productCategory || 'Fashion'}
