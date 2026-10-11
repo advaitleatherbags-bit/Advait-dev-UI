@@ -26,7 +26,7 @@ export default function ProductCard({ product }) {
   const secondaryImage = product?.imageUrls?.[1] || (product?.images?.length > 1 ? product.images[1].imageUrl : null)
   const productCategory = product?.categoryName || product?.category
   const discount = product?.discountPercentage || 0
-  const label = product?.label || product?.badge
+  const label = typeof product?.label === 'string' ? product.label.trim() : ''
   const userId = user?.userId || user?.id || null
 
   const getToken = () => localStorage.getItem('token')
@@ -190,25 +190,14 @@ export default function ProductCard({ product }) {
     }
   }
 
-  let badgeText = null
-  let badgeColor = ''
-
-  if (discount > 0 || label === 'Sale') {
-    badgeText = 'SALE'
-    badgeColor = 'bg-red-500'
-  } else if (label === 'New') {
-    badgeText = 'NEW'
-    badgeColor = 'bg-[#C9A96E]'
-  } else if (label === 'Best Seller') {
-    badgeText = 'BEST SELLER'
-    badgeColor = 'bg-purple-500'
-  } else if (label === 'Premium') {
-    badgeText = 'PREMIUM'
-    badgeColor = 'bg-[#102A39]'
-  } else if (label) {
-    badgeText = label.toUpperCase()
-    badgeColor = 'bg-[#391F10]'
-  }
+  // Show the product label exactly as the backend provides it.
+  const badgeText = label
+  const badgeColor = {
+    sale: 'from-red-500 to-rose-500',
+    new: 'from-amber-400 to-yellow-500',
+    'best seller': 'from-violet-500 to-purple-600',
+    premium: 'from-[#102A39] to-[#1C4960]'
+  }[label.toLowerCase()] || 'from-[#C98235] to-[#C9A96E]'
 
   let originalPrice = null
   if (discount > 0) {
@@ -252,7 +241,7 @@ export default function ProductCard({ product }) {
           <motion.span
             initial={{ x: -30, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            className={`absolute top-2 left-2 ${badgeColor} text-white px-2 py-0.5 rounded-full text-[8px] sm:text-[10px] font-bold shadow-lg z-10 uppercase tracking-wider`}
+            className={`absolute top-2 left-2 bg-gradient-to-r ${badgeColor} rounded-full px-2 py-0.5 text-[8px] font-bold tracking-wider text-white shadow-lg ring-1 ring-white/30 sm:text-[10px] z-10`}
           >
             {badgeText}
           </motion.span>

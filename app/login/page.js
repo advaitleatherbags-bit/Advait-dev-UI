@@ -14,8 +14,8 @@ import {
   CheckCircleIcon
 } from '@heroicons/react/24/outline'
 
-const GMAIL_PATTERN = /^[A-Z0-9._%+-]+@gmail\.com$/i
-const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d).{8}$/
 
 export default function Login() {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL
@@ -58,8 +58,8 @@ export default function Login() {
       showSnackbar('Email address is required')
       return false
     }
-    if (!GMAIL_PATTERN.test(formData.identifier.trim())) {
-      showSnackbar('Please enter a valid @gmail.com email address')
+    if (!EMAIL_PATTERN.test(formData.identifier.trim())) {
+      showSnackbar('Please enter a valid email address')
       return false
     }
     if (!formData.password.trim()) {
@@ -67,7 +67,7 @@ export default function Login() {
       return false
     }
     if (!PASSWORD_PATTERN.test(formData.password)) {
-      showSnackbar('Password must be at least 8 characters and include letters and numbers')
+      showSnackbar('Password must be exactly 8 characters and include letters and numbers')
       return false
     }
     return true
@@ -160,14 +160,13 @@ export default function Login() {
             <div className="relative">
               <EnvelopeIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
-                type="text"
+                type="email"
                 name="identifier"
                 value={formData.identifier}
                 onChange={handleChange}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
-                placeholder="user@gmail.com"
-                pattern="[A-Za-z0-9._%+-]+@gmail[.]com"
-                title="Enter a valid @gmail.com email address"
+                placeholder="user@example.com"
+                title="Enter a valid email address"
                 required
                 disabled={loading || success}
               />
@@ -186,10 +185,11 @@ export default function Login() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
+                maxLength={8}
                 className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
                 placeholder="Enter your password"
                 minLength={8}
-                title="Use at least 8 characters, including letters and numbers"
+                title="Use exactly 8 characters, including letters and numbers"
                 required
                 disabled={loading || success}
               />

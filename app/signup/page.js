@@ -19,8 +19,8 @@ import {
 } from '@heroicons/react/24/outline'
 import { useSnackbar } from '../components/SnackbarProvider'
 
-const GMAIL_PATTERN = /^[A-Z0-9._%+-]+@gmail\.com$/i
-const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d).{8}$/
 const MIN_LOCATION_LENGTH = 3
 const MAX_ADDRESS_LENGTH = 80
 const MAX_LOCATION_LENGTH = 20
@@ -126,8 +126,8 @@ export default function SignUp() {
       showSnackbar('Email address is required')
       return false
     }
-    if (!GMAIL_PATTERN.test(formData.emailAddress.trim())) {
-      showSnackbar('Please enter a valid @gmail.com email address')
+    if (!EMAIL_PATTERN.test(formData.emailAddress.trim())) {
+      showSnackbar('Please enter a valid email address')
       return false
     }
     if (!formData.mobileNumber.trim()) {
@@ -143,7 +143,7 @@ export default function SignUp() {
       return false
     }
     if (!PASSWORD_PATTERN.test(formData.password)) {
-      showSnackbar('Password must be at least 8 characters and include letters and numbers')
+      showSnackbar('Password must be exactly 8 characters and include letters and numbers')
       return false
     }
     if (formData.Address.trim().length < MIN_LOCATION_LENGTH) {
@@ -279,9 +279,8 @@ export default function SignUp() {
                 value={formData.emailAddress}
                 onChange={handleChange}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
-                placeholder="user@gmail.com"
-                pattern="[A-Za-z0-9._%+-]+@gmail[.]com"
-                title="Enter a valid @gmail.com email address"
+                placeholder="user@example.com"
+                title="Enter a valid email address"
                 required
                 disabled={loading || success}
               />
@@ -324,10 +323,11 @@ export default function SignUp() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
+                maxLength={8}
                 className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
-                placeholder="Minimum 8 characters, letters and numbers"
+                placeholder="8 characters with letters and numbers"
                 minLength={8}
-                title="Use at least 8 characters, including letters and numbers"
+                title="Use exactly 8 characters, including letters and numbers"
                 required
                 disabled={loading || success}
               />
