@@ -4,12 +4,12 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useSnackbar } from '../components/SnackbarProvider'
 import { 
   EnvelopeIcon, 
   LockClosedIcon,
   KeyIcon,
   CheckCircleIcon,
-  ExclamationCircleIcon,
   ArrowLeftIcon
 } from '@heroicons/react/24/outline'
 
@@ -17,23 +17,21 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
 export default function ForgotPassword() {
   const router = useRouter()
+  const { showSnackbar } = useSnackbar()
   
   // Step 1: Email
   const [email, setEmail] = useState('')
-  const [emailError, setEmailError] = useState('')
   const [emailSuccess, setEmailSuccess] = useState(false)
   const [sendingOtp, setSendingOtp] = useState(false)
   
   // Step 2: OTP
   const [otp, setOtp] = useState('')
-  const [otpError, setOtpError] = useState('')
   const [otpSuccess, setOtpSuccess] = useState(false)
   const [verifyingOtp, setVerifyingOtp] = useState(false)
   
   // Step 3: New Password
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [passwordError, setPasswordError] = useState('')
   const [passwordSuccess, setPasswordSuccess] = useState(false)
   const [resettingPassword, setResettingPassword] = useState(false)
   
@@ -46,16 +44,15 @@ export default function ForgotPassword() {
     e.preventDefault()
     
     if (!email.trim()) {
-      setEmailError('Email address is required')
+      showSnackbar('Email address is required')
       return
     }
     if (!email.includes('@')) {
-      setEmailError('Please enter a valid email address')
+      showSnackbar('Please enter a valid email address')
       return
     }
 
     setSendingOtp(true)
-    setEmailError('')
     setEmailSuccess(false)
 
     try {
@@ -76,10 +73,10 @@ export default function ForgotPassword() {
         }, 1500)
       } else {
         const err = await response.text()
-        setEmailError(err || 'Failed to send OTP. Please try again.')
+        showSnackbar(err || 'Failed to send OTP. Please try again.')
       }
     } catch {
-      setEmailError('Network error. Please check your connection.')
+      showSnackbar('Network error. Please check your connection.')
     } finally {
       setSendingOtp(false)
     }
@@ -90,16 +87,15 @@ export default function ForgotPassword() {
     e.preventDefault()
     
     if (!otp.trim()) {
-      setOtpError('Verification code is required')
+      showSnackbar('Verification code is required')
       return
     }
     if (otp.length < 4) {
-      setOtpError('Please enter a valid verification code')
+      showSnackbar('Please enter a valid verification code')
       return
     }
 
     setVerifyingOtp(true)
-    setOtpError('')
     setOtpSuccess(false)
 
     try {
@@ -122,10 +118,10 @@ export default function ForgotPassword() {
         }, 1500)
       } else {
         const err = await response.text()
-        setOtpError(err || 'Invalid verification code. Please try again.')
+        showSnackbar(err || 'Invalid verification code. Please try again.')
       }
     } catch {
-      setOtpError('Network error. Please check your connection.')
+      showSnackbar('Network error. Please check your connection.')
     } finally {
       setVerifyingOtp(false)
     }
@@ -136,20 +132,19 @@ export default function ForgotPassword() {
     e.preventDefault()
     
     if (!newPassword.trim()) {
-      setPasswordError('New password is required')
+      showSnackbar('New password is required')
       return
     }
     if (newPassword.length < 6) {
-      setPasswordError('Password must be at least 6 characters')
+      showSnackbar('Password must be at least 6 characters')
       return
     }
     if (newPassword !== confirmPassword) {
-      setPasswordError('Passwords do not match')
+      showSnackbar('Passwords do not match')
       return
     }
 
     setResettingPassword(true)
-    setPasswordError('')
     setPasswordSuccess(false)
 
     try {
@@ -173,10 +168,10 @@ export default function ForgotPassword() {
         }, 2000)
       } else {
         const err = await response.text()
-        setPasswordError(err || 'Failed to reset password. Please try again.')
+        showSnackbar(err || 'Failed to reset password. Please try again.')
       }
     } catch {
-      setPasswordError('Network error. Please check your connection.')
+      showSnackbar('Network error. Please check your connection.')
     } finally {
       setResettingPassword(false)
     }
@@ -185,7 +180,6 @@ export default function ForgotPassword() {
   // ✅ Resend OTP
   const handleResendOtp = async () => {
     setSendingOtp(true)
-    setOtpError('')
     
     try {
       const response = await fetch(`${API_BASE}/Auth/forgot-password`, {
@@ -197,14 +191,13 @@ export default function ForgotPassword() {
       })
 
       if (response.ok) {
-        setOtpError('')
-        alert('OTP resent successfully!')
+        showSnackbar('OTP resent successfully!', 'success')
       } else {
         const err = await response.text()
-        setOtpError(err || 'Failed to resend OTP')
+        showSnackbar(err || 'Failed to resend OTP')
       }
     } catch {
-      setOtpError('Network error. Please try again.')
+      showSnackbar('Network error. Please try again.')
     } finally {
       setSendingOtp(false)
     }
@@ -213,9 +206,6 @@ export default function ForgotPassword() {
   // ✅ Go back to previous step
   const goToStep = (step) => {
     setCurrentStep(step)
-    setEmailError('')
-    setOtpError('')
-    setPasswordError('')
   }
 
   return (
@@ -252,13 +242,6 @@ export default function ForgotPassword() {
               <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
                 <CheckCircleIcon className="h-5 w-5 text-green-500" />
                 OTP sent successfully! Redirecting...
-              </div>
-            )}
-
-            {emailError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
-                <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
-                {emailError}
               </div>
             )}
 
@@ -317,13 +300,6 @@ export default function ForgotPassword() {
               <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
                 <CheckCircleIcon className="h-5 w-5 text-green-500" />
                 OTP verified! Redirecting...
-              </div>
-            )}
-
-            {otpError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
-                <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
-                {otpError}
               </div>
             )}
 
@@ -398,13 +374,6 @@ export default function ForgotPassword() {
               <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
                 <CheckCircleIcon className="h-5 w-5 text-green-500" />
                 Password reset successfully! Redirecting to login...
-              </div>
-            )}
-
-            {passwordError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
-                <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
-                {passwordError}
               </div>
             )}
 

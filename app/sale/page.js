@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import ProductCard from '../components/ProductCard'
 import { api } from '../utils/api'
+import { useSnackbar } from '../components/SnackbarProvider'
 
 export default function Sale() {
+  const { showSnackbar } = useSnackbar()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -23,6 +25,7 @@ export default function Sale() {
       setProducts(saleItems)
     } catch (error) {
       console.error('Failed to fetch sale products:', error)
+      showSnackbar('Could not load sale products. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -40,7 +43,9 @@ export default function Sale() {
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-red-500 mb-2 sm:mb-3 tracking-tight">
              Sale
           </h1>
-          <p className="text-sm sm:text-base text-gray-500">Up to 50% off on selected items</p>
+<p className="text-sm sm:text-base text-gray-500">
+  Crafted for Style & Everyday Luxury
+</p>
         </motion.div>
 
         {loading ? (

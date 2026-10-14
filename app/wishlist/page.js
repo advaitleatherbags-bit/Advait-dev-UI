@@ -11,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid'
 import { useAuth } from '../context/AuthContext'
+import { useSnackbar } from '../components/SnackbarProvider'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 const getToken = () => {
@@ -21,6 +22,7 @@ const getToken = () => {
 export default function Wishlist() {
   const router = useRouter()
   const { user } = useAuth()
+  const { showSnackbar } = useSnackbar()
   const [wishlistItems, setWishlistItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -41,11 +43,14 @@ export default function Wishlist() {
         setWishlistItems(Array.isArray(data) ? data : [])
       } else if (response.status === 401) {
         setError('Please login to view wishlist')
+        showSnackbar('Please login to view wishlist')
       } else {
         setError('Failed to load wishlist')
+        showSnackbar('Failed to load wishlist')
       }
     } catch {
       setError('Network error. Please try again.')
+      showSnackbar('Network error. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -74,10 +79,10 @@ export default function Wishlist() {
       if (response.ok) {
         setWishlistItems(prev => prev.filter(item => item.id !== id))
       } else {
-        alert('Failed to remove from wishlist')
+        showSnackbar('Failed to remove from wishlist')
       }
     } catch {
-      alert('Network error. Please try again.')
+      showSnackbar('Network error. Please try again.')
     }
   }
 
@@ -104,12 +109,12 @@ export default function Wishlist() {
       })
 
       if (response.ok) {
-        alert('Added to cart successfully!')
+        showSnackbar('Added to cart successfully!', 'success')
       } else {
-        alert('Failed to add to cart')
+        showSnackbar('Failed to add to cart')
       }
     } catch {
-      alert('Network error. Please try again.')
+      showSnackbar('Network error. Please try again.')
     }
   }
 
@@ -141,7 +146,7 @@ export default function Wishlist() {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16 text-center bg-white min-h-screen">
         <h2 className="text-2xl font-bold text-red-500 mb-2">Error</h2>
-        <p className="text-gray-600">{error}</p>
+        <p className="text-gray-600">We couldn&apos;t load your wishlist. Please try again.</p>
         <button 
           onClick={() => window.location.href = '/'}
           className="mt-4 bg-[#391F10] text-white px-6 py-2 rounded-lg hover:bg-[#2a1509] transition-all"

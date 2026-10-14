@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { TruckIcon, ShieldCheckIcon, ArrowPathIcon, CreditCardIcon } from '@heroicons/react/24/outline'
+import { TruckIcon, ShieldCheckIcon, SparklesIcon, CreditCardIcon } from '@heroicons/react/24/outline'
 
 const features = [
   {
@@ -18,9 +18,9 @@ const features = [
   },
   {
     id: 'feature-3',
-    icon: ArrowPathIcon,
-    title: 'Easy Returns',
-    description: '30-day return policy'
+    icon: SparklesIcon,
+    title: 'Handcrafted Quality',
+    description: 'Made by skilled artisans'
   },
   {
     id: 'feature-4',

@@ -5,26 +5,29 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
+import { useSnackbar } from '../components/SnackbarProvider'
 import { 
   EnvelopeIcon, 
   LockClosedIcon, 
   EyeIcon, 
   EyeSlashIcon,
-  ExclamationCircleIcon,
   CheckCircleIcon
 } from '@heroicons/react/24/outline'
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d).{8}$/
 
 export default function Login() {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL
   const router = useRouter()
   const { user, token, loading: authLoading } = useAuth()
+  const { showSnackbar } = useSnackbar()
   const [formData, setFormData] = useState({
     identifier: '',
     password: ''
   })
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
   useEffect(() => {
@@ -48,20 +51,23 @@ export default function Login() {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
-    setError('')
   }
 
   const validateForm = () => {
     if (!formData.identifier.trim()) {
-      setError('Email or mobile number is required')
+      showSnackbar('Email address is required')
+      return false
+    }
+    if (!EMAIL_PATTERN.test(formData.identifier.trim())) {
+      showSnackbar('Please enter a valid email address')
       return false
     }
     if (!formData.password.trim()) {
-      setError('Password is required')
+      showSnackbar('Password is required')
       return false
     }
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters')
+    if (!PASSWORD_PATTERN.test(formData.password)) {
+      showSnackbar('Password must be exactly 8 characters and include letters and numbers')
       return false
     }
     return true
@@ -73,7 +79,6 @@ export default function Login() {
     if (!validateForm()) return
 
     setLoading(true)
-    setError('')
     setSuccess(false)
 
     try {
@@ -109,13 +114,13 @@ export default function Login() {
             }
           }, 1500)
         } else {
-          setError('Invalid response from server')
+          showSnackbar('Invalid response from server')
         }
       } else {
-        setError(data.message || 'Invalid email/mobile or password')
+        showSnackbar(data.message || 'Invalid email or password')
       }
     } catch {
-      setError('Network error. Please check your connection.')
+      showSnackbar('Network error. Please check your connection.')
     } finally {
       setLoading(false)
     }
@@ -146,33 +151,22 @@ export default function Login() {
           </motion.div>
         )}
 
-        {/* Error Message */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4 flex items-center gap-2"
-          >
-            <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
-            {error}
-          </motion.div>
-        )}
-
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Email/Mobile */}
+          {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email or Mobile Number *
+              Email Address *
             </label>
             <div className="relative">
               <EnvelopeIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
-                type="text"
+                type="email"
                 name="identifier"
                 value={formData.identifier}
                 onChange={handleChange}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
-                placeholder="user@example.com or 6487968651"
+                placeholder="user@example.com"
+                title="Enter a valid email address"
                 required
                 disabled={loading || success}
               />
@@ -191,8 +185,11 @@ export default function Login() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
+                maxLength={8}
                 className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
                 placeholder="Enter your password"
+                minLength={8}
+                title="Use exactly 8 characters, including letters and numbers"
                 required
                 disabled={loading || success}
               />
@@ -220,9 +217,9 @@ export default function Login() {
               />
               <span className="ml-2 text-sm text-gray-600">Remember me</span>
             </label>
-          <Link href="/forgot-password" className="text-sm text-[#C9A96E] hover:text-[#b8965a] transition-colors">
-  Forgot password?
-</Link>
+            <Link href="/forgot-password" className="text-sm text-[#C9A96E] hover:text-[#b8965a] transition-colors">
+              Forgot password?
+            </Link>
           </div>
 
           {/* Submit Button */}
@@ -250,7 +247,17 @@ export default function Login() {
           </motion.button>
         </form>
 
-        <div className="mt-6 text-center">
+        {/* Not Verified Yet Link */}
+        <div className="mt-4 text-center">
+          <p className="text-sm text-gray-500">
+            Not Verified yet?{' '}
+            <Link href="/verify-otp" className="text-[#C9A96E] hover:text-[#b8965a] font-semibold transition-colors">
+              Verify your email
+            </Link>
+          </p>
+        </div>
+
+        <div className="mt-6 text-center border-t border-gray-100 pt-4">
           <p className="text-gray-600 text-sm">
             Don&apos;t have an account?{' '}
             <Link href="/signup" className="text-[#C9A96E] hover:text-[#b8965a] font-semibold transition-colors">

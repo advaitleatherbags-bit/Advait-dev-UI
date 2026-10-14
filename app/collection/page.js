@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import ProductCard from '../components/ProductCard'
 import { api } from '../utils/api'
+import { useSnackbar } from '../components/SnackbarProvider'
 
 export default function Collection() {
+  const { showSnackbar } = useSnackbar()
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [selectedCategoryId, setSelectedCategoryId] = useState('')
@@ -28,6 +30,7 @@ export default function Collection() {
       if (categoriesData.length > 0) setSelectedCategoryId(categoriesData[0].categoryId)
     } catch (error) {
       console.error('Failed to fetch data:', error)
+      showSnackbar('Could not load the collection. Please try again.')
     } finally {
       setLoading(false)
     }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useSnackbar } from '../../../components/SnackbarProvider'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { XCircleIcon, HomeIcon, ArrowPathIcon, ShoppingBagIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
@@ -9,13 +10,13 @@ import { XCircleIcon, HomeIcon, ArrowPathIcon, ShoppingBagIcon, ExclamationTrian
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
 export default function PaymentFailure() {
+  const { showSnackbar } = useSnackbar()
   const params = useParams()
   const router = useRouter()
   const orderId = params.orderId
 
   const [loading, setLoading] = useState(true)
   const [retrying, setRetrying] = useState(false)
-  const [error, setError] = useState('')
   const [paymentStatus, setPaymentStatus] = useState(null)
 
   const getToken = () => {
@@ -47,6 +48,7 @@ export default function PaymentFailure() {
       }
     } catch (error) {
       console.error('Failed to fetch payment status:', error)
+      showSnackbar('Could not load payment status. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -58,12 +60,11 @@ export default function PaymentFailure() {
 
   const retryPayment = async () => {
     if (!orderId) {
-      alert('No order found to retry')
+      showSnackbar('No order found to retry')
       return
     }
 
     setRetrying(true)
-    setError('')
 
     try {
       const response = await fetch(`${API_BASE}/orders/${orderId}/retry-payment`, {
@@ -92,14 +93,14 @@ export default function PaymentFailure() {
           document.body.appendChild(form)
           form.submit()
         } else {
-          setError('Invalid payment response from server')
+          showSnackbar('Invalid payment response from server')
         }
       } else {
         const err = await response.text()
-        setError(err || 'Failed to retry payment')
+        showSnackbar(err || 'Failed to retry payment')
       }
     } catch {
-      setError('Network error. Please try again.')
+      showSnackbar('Network error. Please try again.')
     } finally {
       setRetrying(false)
     }
@@ -149,7 +150,6 @@ export default function PaymentFailure() {
             </div>
           </div>
 
-          {error && <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-xs">{error}</div>}
 
           <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
             <h3 className="text-sm font-semibold text-gray-700 mb-3">Possible reasons:</h3>

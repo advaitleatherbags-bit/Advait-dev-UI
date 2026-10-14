@@ -4,12 +4,9 @@ import { motion } from 'framer-motion'
 import { 
   TruckIcon, 
   ShieldCheckIcon, 
-  ArrowPathIcon, 
   CreditCardIcon, 
-  GiftIcon, 
   ClockIcon,
   MapPinIcon,
-  PhoneIcon,
   EnvelopeIcon
 } from '@heroicons/react/24/outline'
 
@@ -25,18 +22,6 @@ const features = [
     icon: ShieldCheckIcon,
     title: 'Secure Payment',
     description: '100% secure payment methods'
-  },
-  {
-    id: 'feature-3',
-    icon: ArrowPathIcon,
-    title: 'Easy Returns',
-    description: '30-day return policy'
-  },
-  {
-    id: 'feature-4',
-    icon: GiftIcon,
-    title: 'Gift Ready',
-    description: 'Complimentary gift wrapping'
   },
   {
     id: 'feature-5',
@@ -56,7 +41,6 @@ export default function Contact() {
   return (
     <div className="min-h-screen py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Why Choose ADVIT? Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -64,14 +48,14 @@ export default function Contact() {
           className="text-center mb-12"
         >
           <h1 className="text-4xl md:text-6xl font-bold text-[#391F10] mb-4 tracking-tight">
-            Why Choose ADVIT?
+            Why Choose ADVAIT?
           </h1>
           <p className="text-gray-500 text-lg max-w-2xl mx-auto">
             We&apos;re committed to providing the best shopping experience
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 md:gap-8 mb-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-16">
           {features.map((feature, index) => (
             <motion.div
               key={feature.id}
@@ -108,7 +92,7 @@ export default function Contact() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -119,20 +103,7 @@ export default function Contact() {
                 <MapPinIcon className="h-7 w-7 text-[#C9A96E]" />
               </div>
               <h3 className="font-semibold text-[#391F10] mb-2">Address</h3>
-              <p className="text-gray-500 text-sm">123 Fashion Street,<br />New York, NY 10001</p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="text-center p-6 bg-gray-50 rounded-2xl hover:shadow-lg transition-all duration-300"
-            >
-              <div className="w-14 h-14 bg-[#C9A96E]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <PhoneIcon className="h-7 w-7 text-[#C9A96E]" />
-              </div>
-              <h3 className="font-semibold text-[#391F10] mb-2">Phone</h3>
-              <p className="text-gray-500 text-sm">+1 (555) 123-4567</p>
+             <p className="text-gray-500 text-sm">Gujarat, India</p>
             </motion.div>
 
             <motion.div
@@ -145,7 +116,9 @@ export default function Contact() {
                 <EnvelopeIcon className="h-7 w-7 text-[#C9A96E]" />
               </div>
               <h3 className="font-semibold text-[#391F10] mb-2">Email</h3>
-              <p className="text-gray-500 text-sm">info@advit.com</p>
+              <a href="mailto:advaitleatherbags@gmail.com" className="text-gray-500 text-sm hover:text-[#C9A96E] transition-colors">
+                advaitleatherbags@gmail.com
+              </a>
             </motion.div>
           </div>
         </div>

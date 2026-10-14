@@ -14,14 +14,66 @@ import {
   EyeIcon,
   EyeSlashIcon,
   CheckCircleIcon,
-  ExclamationCircleIcon,
   MapPinIcon,
   BuildingOfficeIcon
 } from '@heroicons/react/24/outline'
+import { useSnackbar } from '../components/SnackbarProvider'
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d).{8}$/
+const MIN_LOCATION_LENGTH = 3
+const MAX_ADDRESS_LENGTH = 80
+const MAX_LOCATION_LENGTH = 20
+
+async function readResponseBody(response) {
+  const text = await response.text()
+  if (!text) return null
+
+  try {
+    return JSON.parse(text)
+  } catch {
+    return text
+  }
+}
+
+function getBackendErrorMessage(body) {
+  if (typeof body === 'string') {
+    const message = body.trim()
+    return message && !/<(?:!doctype|html)[\s>]/i.test(message)
+      ? message
+      : 'Registration failed. Please try again.'
+  }
+
+  if (Array.isArray(body)) {
+    const messages = body.filter((item) => typeof item === 'string' && item.trim())
+    if (messages.length) return messages.join(' ')
+  }
+
+  const message = body?.message || body?.detail || body?.error || body?.errorMessage
+  if (typeof message === 'string' && message.trim()) return message.trim()
+
+  const validationErrors = body?.errors
+  if (Array.isArray(validationErrors)) {
+    const messages = validationErrors.filter((item) => typeof item === 'string' && item.trim())
+    if (messages.length) return messages.join(' ')
+  }
+
+  if (validationErrors && typeof validationErrors === 'object') {
+    const messages = Object.values(validationErrors)
+      .flat(Infinity)
+      .filter((item) => typeof item === 'string' && item.trim())
+    if (messages.length) return [...new Set(messages)].join(' ')
+  }
+
+  if (typeof body?.title === 'string' && body.title.trim()) return body.title.trim()
+
+  return 'Registration failed. Please try again.'
+}
 
 export default function SignUp() {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL
   const router = useRouter()
+  const { showSnackbar } = useSnackbar()
   const { user, token, loading: authLoading } = useAuth()
   const [formData, setFormData] = useState({
     username: '',
@@ -35,7 +87,6 @@ export default function SignUp() {
   })
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
   useEffect(() => {
@@ -58,53 +109,69 @@ export default function SignUp() {
   }
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
-    setError('')
+    const { name, value } = e.target
+    const nextValue = ['mobileNumber', 'Pincode'].includes(name)
+      ? value.replace(/\D/g, '')
+      : value
+
+    setFormData({ ...formData, [name]: nextValue })
   }
 
   const validateForm = () => {
     if (!formData.username.trim()) {
-      setError('Username is required')
+      showSnackbar('Username is required')
       return false
     }
     if (!formData.emailAddress.trim()) {
-      setError('Email address is required')
+      showSnackbar('Email address is required')
       return false
     }
-    if (!formData.emailAddress.includes('@')) {
-      setError('Please enter a valid email address')
+    if (!EMAIL_PATTERN.test(formData.emailAddress.trim())) {
+      showSnackbar('Please enter a valid email address')
       return false
     }
     if (!formData.mobileNumber.trim()) {
-      setError('Mobile number is required')
+      showSnackbar('Mobile number is required')
       return false
     }
-    if (formData.mobileNumber.length < 10) {
-      setError('Please enter a valid mobile number')
+    if (!/^\d{10}$/.test(formData.mobileNumber)) {
+      showSnackbar('Mobile number must contain exactly 10 digits')
       return false
     }
     if (!formData.password.trim()) {
-      setError('Password is required')
+      showSnackbar('Password is required')
       return false
     }
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters')
+    if (!PASSWORD_PATTERN.test(formData.password)) {
+      showSnackbar('Password must be exactly 8 characters and include letters and numbers')
       return false
     }
-    if (!formData.Address.trim()) {
-      setError('Address is required')
+    if (formData.Address.trim().length < MIN_LOCATION_LENGTH) {
+      showSnackbar(`Address must be at least ${MIN_LOCATION_LENGTH} characters`)
       return false
     }
-    if (!formData.State.trim()) {
-      setError('State is required')
+    if (formData.Address.length > MAX_ADDRESS_LENGTH) {
+      showSnackbar(`Address cannot exceed ${MAX_ADDRESS_LENGTH} characters`)
       return false
     }
-    if (!formData.City.trim()) {
-      setError('City is required')
+    if (formData.State.trim().length < MIN_LOCATION_LENGTH) {
+      showSnackbar(`State must be at least ${MIN_LOCATION_LENGTH} characters`)
       return false
     }
-    if (!formData.Pincode.trim()) {
-      setError('Pincode is required')
+    if (formData.State.length > MAX_LOCATION_LENGTH) {
+      showSnackbar(`State cannot exceed ${MAX_LOCATION_LENGTH} characters`)
+      return false
+    }
+    if (formData.City.trim().length < MIN_LOCATION_LENGTH) {
+      showSnackbar(`City must be at least ${MIN_LOCATION_LENGTH} characters`)
+      return false
+    }
+    if (formData.City.length > MAX_LOCATION_LENGTH) {
+      showSnackbar(`City cannot exceed ${MAX_LOCATION_LENGTH} characters`)
+      return false
+    }
+    if (!/^\d{6,8}$/.test(formData.Pincode)) {
+      showSnackbar('Pincode must contain between 6 and 8 digits')
       return false
     }
     return true
@@ -116,8 +183,6 @@ export default function SignUp() {
     if (!validateForm()) return
 
     setLoading(true)
-    setError('')
-
     try {
       const response = await fetch(`${API_BASE}/Auth/register`, {
         method: 'POST',
@@ -136,25 +201,20 @@ export default function SignUp() {
         })
       })
 
-      const data = await response.json()
+      const data = await readResponseBody(response)
 
       if (response.ok) {
         setSuccess(true)
-        // Keep only the token locally; AuthProvider loads the profile from /Auth/me.
-        if (data.token) {
-          localStorage.setItem('token', data.token)
-          window.dispatchEvent(new Event('advit:auth-updated'))
-          window.dispatchEvent(new Event('advit:commerce-updated'))
-        }
-        // Redirect to home after 2 seconds
+        // Token save NAHI karna - user abhi verified nahi hai
+        // Redirect to OTP verification page with email
         setTimeout(() => {
-          router.push('/')
-        }, 2000)
+          router.push(`/verify-otp?email=${encodeURIComponent(formData.emailAddress)}`)
+        }, 1500)
       } else {
-        setError(data.message || 'Registration failed. Please try again.')
+        showSnackbar(getBackendErrorMessage(data))
       }
     } catch {
-      setError('Network error. Please check your connection.')
+      showSnackbar('Network error. Please check your connection.')
     } finally {
       setLoading(false)
     }
@@ -170,7 +230,7 @@ export default function SignUp() {
       >
         <div className="text-center mb-6 sm:mb-8">
           <h2 className="text-2xl sm:text-3xl font-bold text-[#391F10]">Create Account</h2>
-          <p className="text-gray-500 text-sm sm:text-base mt-1">Join the ADVIT family</p>
+          <p className="text-gray-500 text-sm sm:text-base mt-1">Join the ADVAIT family</p>
         </div>
 
         {/* Success Message */}
@@ -181,19 +241,7 @@ export default function SignUp() {
             className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm mb-4 flex items-center gap-2"
           >
             <CheckCircleIcon className="h-5 w-5 text-green-500" />
-            Account created successfully! Redirecting...
-          </motion.div>
-        )}
-
-        {/* Error Message */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4 flex items-center gap-2"
-          >
-            <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
-            {error}
+            Account created! Redirecting to OTP verification...
           </motion.div>
         )}
 
@@ -232,6 +280,7 @@ export default function SignUp() {
                 onChange={handleChange}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
                 placeholder="user@example.com"
+                title="Enter a valid email address"
                 required
                 disabled={loading || success}
               />
@@ -252,6 +301,10 @@ export default function SignUp() {
                 onChange={handleChange}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
                 placeholder="6487968651"
+                inputMode="numeric"
+                pattern="[0-9]{10}"
+                maxLength={10}
+                title="Enter exactly 10 digits"
                 required
                 disabled={loading || success}
               />
@@ -270,8 +323,11 @@ export default function SignUp() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
+                maxLength={8}
                 className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
-                placeholder="Min 6 characters"
+                placeholder="8 characters with letters and numbers"
+                minLength={8}
+                title="Use exactly 8 characters, including letters and numbers"
                 required
                 disabled={loading || success}
               />
@@ -303,19 +359,21 @@ export default function SignUp() {
                 rows="2"
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
                 placeholder="Enter shipping address"
+                minLength={MIN_LOCATION_LENGTH}
+                maxLength={MAX_ADDRESS_LENGTH}
                 required
                 disabled={loading || success}
               />
             </div>
           </div>
+
           {/* State */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               State *
             </label>
             <div className="relative">
-              <MapPinIcon
-               className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <MapPinIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
                 name="State"
@@ -323,6 +381,8 @@ export default function SignUp() {
                 onChange={handleChange}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
                 placeholder="Enter state"
+                minLength={MIN_LOCATION_LENGTH}
+                maxLength={MAX_LOCATION_LENGTH}
                 required
                 disabled={loading || success}
               />
@@ -343,6 +403,8 @@ export default function SignUp() {
                 onChange={handleChange}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
                 placeholder="Enter city"
+                minLength={MIN_LOCATION_LENGTH}
+                maxLength={MAX_LOCATION_LENGTH}
                 required
                 disabled={loading || success}
               />
@@ -363,6 +425,10 @@ export default function SignUp() {
                 onChange={handleChange}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
                 placeholder="Enter pincode"
+                inputMode="numeric"
+                pattern="[0-9]{6,8}"
+                maxLength={8}
+                title="Enter between 6 and 8 digits"
                 required
                 disabled={loading || success}
               />
@@ -402,6 +468,7 @@ export default function SignUp() {
           </p>
         </div>
       </motion.div>
+
     </div>
   )
 }

@@ -4,13 +4,14 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { ArrowRightIcon } from '@heroicons/react/24/outline'
+import { useSnackbar } from './SnackbarProvider'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
 export default function CheckoutButton({ total, disabled }) {
   const router = useRouter()
+  const { showSnackbar } = useSnackbar()
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
 
   const getToken = () => {
     if (typeof window === 'undefined') return null
@@ -42,14 +43,12 @@ export default function CheckoutButton({ total, disabled }) {
 
   const handleCheckout = async () => {
     if (!getToken()) {
-      alert('Please login to checkout')
+      showSnackbar('Please login to checkout')
       router.push('/login')
       return
     }
 
     setLoading(true)
-    setError('')
-
     try {
       // ✅ POST /api/orders/checkout
       const response = await fetch(`${API_BASE}/orders/checkout`, {
@@ -66,10 +65,10 @@ export default function CheckoutButton({ total, disabled }) {
         redirectToPayU(data)
       } else {
         const err = await response.text()
-        setError(err || 'Failed to initiate checkout')
+        showSnackbar(err || 'Failed to initiate checkout')
       }
     } catch (error) {
-      setError('Network error. Please try again.')
+      showSnackbar('Network error. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -77,11 +76,6 @@ export default function CheckoutButton({ total, disabled }) {
 
   return (
     <div className="w-full">
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm mb-3">
-          {error}
-        </div>
-      )}
       <motion.button
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}

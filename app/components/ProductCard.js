@@ -7,6 +7,7 @@ import { HeartIcon, ShoppingBagIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
+import { useSnackbar } from './SnackbarProvider'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
@@ -16,6 +17,7 @@ export default function ProductCard({ product }) {
   const [addingToCart, setAddingToCart] = useState(false)
   const [loading, setLoading] = useState(true)
   const { user } = useAuth()
+  const { showSnackbar } = useSnackbar()
 
   const productId = product?.productId || product?.id
   const productName = product?.title || product?.name
@@ -24,7 +26,7 @@ export default function ProductCard({ product }) {
   const secondaryImage = product?.imageUrls?.[1] || (product?.images?.length > 1 ? product.images[1].imageUrl : null)
   const productCategory = product?.categoryName || product?.category
   const discount = product?.discountPercentage || 0
-  const label = product?.label || product?.badge
+  const label = typeof product?.label === 'string' ? product.label.trim() : ''
   const userId = user?.userId || user?.id || null
 
   const getToken = () => localStorage.getItem('token')
@@ -89,10 +91,10 @@ export default function ProductCard({ product }) {
         setIsWishlisted(true)
         window.dispatchEvent(new Event('advit:commerce-updated'))
       } else {
-        alert('Failed to add to wishlist')
+        showSnackbar('Failed to add to wishlist')
       }
     } catch (error) {
-      alert('Network error. Please try again.')
+      showSnackbar('Network error. Please try again.')
     }
   }
 
@@ -124,12 +126,12 @@ export default function ProductCard({ product }) {
             setIsWishlisted(false)
             window.dispatchEvent(new Event('advit:commerce-updated'))
           } else {
-            alert('Failed to remove from wishlist')
+            showSnackbar('Failed to remove from wishlist')
           }
         }
       }
     } catch (error) {
-      alert('Network error. Please try again.')
+      showSnackbar('Network error. Please try again.')
     }
   }
 
@@ -176,37 +178,26 @@ export default function ProductCard({ product }) {
       })
 
       if (response.ok) {
-        alert('Added to cart successfully!')
+        showSnackbar('Added to cart successfully!', 'success')
         window.dispatchEvent(new Event('advit:commerce-updated'))
       } else {
-        alert('Failed to add to cart')
+        showSnackbar('Failed to add to cart')
       }
     } catch (error) {
-      alert('Network error. Please try again.')
+      showSnackbar('Network error. Please try again.')
     } finally {
       setAddingToCart(false)
     }
   }
 
-  let badgeText = null
-  let badgeColor = ''
-
-  if (discount > 0 || label === 'Sale') {
-    badgeText = 'SALE'
-    badgeColor = 'bg-red-500'
-  } else if (label === 'New') {
-    badgeText = 'NEW'
-    badgeColor = 'bg-[#C9A96E]'
-  } else if (label === 'Best Seller') {
-    badgeText = 'BEST SELLER'
-    badgeColor = 'bg-purple-500'
-  } else if (label === 'Premium') {
-    badgeText = 'PREMIUM'
-    badgeColor = 'bg-[#102A39]'
-  } else if (label) {
-    badgeText = label.toUpperCase()
-    badgeColor = 'bg-[#391F10]'
-  }
+  // Show the product label exactly as the backend provides it.
+  const badgeText = label
+  const badgeColor = {
+    sale: 'from-red-500 to-rose-500',
+    new: 'from-amber-400 to-yellow-500',
+    'best seller': 'from-violet-500 to-purple-600',
+    premium: 'from-[#102A39] to-[#1C4960]'
+  }[label.toLowerCase()] || 'from-[#C98235] to-[#C9A96E]'
 
   let originalPrice = null
   if (discount > 0) {
@@ -250,7 +241,7 @@ export default function ProductCard({ product }) {
           <motion.span
             initial={{ x: -30, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            className={`absolute top-2 left-2 ${badgeColor} text-white px-2 py-0.5 rounded-full text-[8px] sm:text-[10px] font-bold shadow-lg z-10 uppercase tracking-wider`}
+            className={`absolute top-2 left-2 bg-gradient-to-r ${badgeColor} rounded-full px-2 py-0.5 text-[8px] font-bold tracking-wider text-white shadow-lg ring-1 ring-white/30 sm:text-[10px] z-10`}
           >
             {badgeText}
           </motion.span>
@@ -282,7 +273,7 @@ export default function ProductCard({ product }) {
         </motion.button>
       </div>
 
-      <div className="p-2 sm:p-3 flex-1 flex flex-col">
+      <div className="min-h-28 p-2 sm:min-h-32 sm:p-3 flex-1 flex flex-col">
         <div className="mb-1 flex-1">
           <p className="text-[8px] sm:text-[10px] text-gray-400 uppercase tracking-wider font-medium">
             {productCategory || 'Fashion'}
