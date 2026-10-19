@@ -5,7 +5,6 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { CheckCircleIcon, HomeIcon, ShoppingBagIcon } from '@heroicons/react/24/outline'
-import { useSnackbar } from '../../../components/SnackbarProvider'
 import OrderProgressBar from '../../../components/OrderProgressBar'
 
 const API_BASE = '/api/backend'
