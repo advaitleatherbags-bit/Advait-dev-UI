@@ -1478,8 +1478,8 @@ useEffect(() => {
                         <td className="px-4 py-3">
                           <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
                             order.orderStatus === 'Shipped' ? 'bg-green-100 text-green-800 border-green-200' :
-                            order.orderStatus === 'Placed' ? 'bg-purple-100 text-purple-800 border-purple-200' :
-                            order.orderStatus === 'Confirmed' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                            order.orderStatus === 'Placed' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
+                            order.orderStatus === 'Confirmed' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
                             order.orderStatus === 'Pending' ? 'bg-amber-100 text-amber-800 border-amber-200' :
                             'bg-red-100 text-red-800 border-red-200'
                           }`}>
