@@ -120,12 +120,13 @@ export default function Profile() {
   const getStatusColor = (status) => {
     switch (status) {
       case 'Placed':
-        return 'bg-purple-100 text-purple-800 border-purple-200'
+        return 'bg-emerald-100 text-emerald-800 border-emerald-200'
       case 'Confirmed':
-        return 'bg-blue-100 text-blue-800 border-blue-200'
+        return 'bg-emerald-100 text-emerald-800 border-emerald-200'
       case 'Pending':
         return 'bg-amber-100 text-amber-800 border-amber-200'
       case 'PaymentFailed':
+      case 'Failed':
       case 'Rejected':
         return 'bg-red-100 text-red-800 border-red-200'
       default:
@@ -279,7 +280,8 @@ export default function Profile() {
                         </div>
                         <div>
                           <p className="text-xs text-gray-400 font-medium mb-0.5">Status</p>
-                          <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold border ${getStatusColor(order.orderStatus)}`}>
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${getStatusColor(order.orderStatus)}`}>
+                            <span className={`h-1.5 w-1.5 rounded-full ${order.orderStatus === 'Placed' || order.orderStatus === 'Confirmed' || order.orderStatus === 'Paid' ? 'bg-emerald-500' : order.orderStatus === 'Pending' ? 'bg-amber-500 animate-pulse' : 'bg-red-500'}`} />
                             {order.orderStatus}
                           </span>
                         </div>
