@@ -26,6 +26,7 @@ export default function PaymentFailure() {
   const [loading, setLoading] = useState(true)
   const [isRedirecting, setIsRedirecting] = useState(false)
   const [retrying, setRetrying] = useState(false)
+  const [error, setError] = useState('')
   const [paymentStatus, setPaymentStatus] = useState(null)
 
   const getToken = () => {
