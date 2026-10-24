@@ -15,7 +15,7 @@ import {
 } from '@heroicons/react/24/outline'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d).{8}$/
+const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d).{8,15}$/
 
 export default function Login() {
   const API_BASE = '/api/backend'
@@ -67,7 +67,7 @@ export default function Login() {
       return false
     }
     if (!PASSWORD_PATTERN.test(formData.password)) {
-      showSnackbar('Password must be exactly 8 characters and include letters and numbers')
+      showSnackbar('Password must be between 8 and 15 characters and include letters and numbers')
       return false
     }
     return true
@@ -185,11 +185,11 @@ export default function Login() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                maxLength={8}
+                maxLength={15}
                 className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
                 placeholder="Enter your password"
                 minLength={8}
-                title="Use exactly 8 characters, including letters and numbers"
+                title="Use between 8 and 15 characters, including letters and numbers"
                 required
                 disabled={loading || success}
               />

@@ -135,8 +135,8 @@ export default function ForgotPassword() {
       showSnackbar('New password is required')
       return
     }
-    if (newPassword.length < 6) {
-      showSnackbar('Password must be at least 6 characters')
+    if (newPassword.length < 8 || newPassword.length > 15) {
+      showSnackbar('Password must be between 8 and 15 characters')
       return
     }
     if (newPassword !== confirmPassword) {
@@ -388,7 +388,9 @@ export default function ForgotPassword() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
-                  placeholder="Min 6 characters"
+                  placeholder="8 to 15 characters"
+                  minLength={8}
+                  maxLength={15}
                   disabled={resettingPassword || passwordSuccess}
                   required
                 />
@@ -407,6 +409,8 @@ export default function ForgotPassword() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391F10] focus:border-transparent transition-all text-sm"
                   placeholder="Confirm your new password"
+                  minLength={8}
+                  maxLength={15}
                   disabled={resettingPassword || passwordSuccess}
                   required
                 />
