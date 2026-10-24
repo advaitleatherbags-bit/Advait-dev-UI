@@ -15,8 +15,8 @@ const dmSans = DM_Sans({
 })
 
 export const metadata = {
-  title: 'ADVIT - Premium Leather Bags | Elevate Your Style',
-  description: 'Discover premium handcrafted leather bags at ADVIT. Shop luxury handbags, briefcases, backpacks, and wallets.',
+  title: 'ADVAIT - Premium Leather Bags | Elevate Your Style',
+  description: 'Discover premium handcrafted leather bags at ADVAIT. Shop luxury handbags, briefcases, backpacks, and wallets.',
 }
 
 export default function RootLayout({ children }) {

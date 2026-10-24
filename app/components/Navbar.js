@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   ShoppingBagIcon,
@@ -202,13 +203,19 @@ export default function Navbar() {
 
             {/* Logo */}
             <Link href="/" className="relative group">
-              <motion.h1
-                className="text-2xl md:text-3xl font-bold tracking-wider text-white"
+              <motion.div
+                className="flex items-center gap-2"
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: 'spring', stiffness: 400 }}
               >
-                ADVAIT
-              </motion.h1>
+                <Image
+                  src="/icon.png"
+                  alt=""
+                  width={100}
+                  height={100}
+                  priority
+                />
+              </motion.div>
 
               <span className="absolute -bottom-1.5 left-0 w-0 h-0.5 bg-[#C9A96E] transition-all duration-500 group-hover:w-full" />
             </Link>
