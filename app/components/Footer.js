@@ -1,15 +1,9 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { TruckIcon, ShieldCheckIcon, SparklesIcon, CreditCardIcon } from '@heroicons/react/24/outline'
+import { ShieldCheckIcon, SparklesIcon, CreditCardIcon } from '@heroicons/react/24/outline'
 
 const features = [
-  {
-    id: 'feature-1',
-    icon: TruckIcon,
-    title: 'Free Shipping',
-    description: 'Free delivery on orders over ₹100'
-  },
   {
     id: 'feature-2',
     icon: ShieldCheckIcon,
@@ -34,7 +28,7 @@ export default function Features() {
   return (
     <section className="py-16 bg-gradient-to-r from-[#391F10] to-[#102A39]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
           {features.map((feature, index) => (
             <motion.div
               key={feature.id}
