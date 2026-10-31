@@ -10,7 +10,8 @@ import {
   PlusIcon, TrashIcon, PencilIcon, XMarkIcon,
   PhotoIcon, FolderIcon, TagIcon,
   CheckCircleIcon,
-  CloudArrowUpIcon, ShoppingBagIcon
+  CloudArrowUpIcon, ShoppingBagIcon,
+  ChevronLeftIcon, ChevronRightIcon
 } from '@heroicons/react/24/outline'
 
 const API_BASE = '/api/backend'
@@ -79,6 +80,10 @@ export default function Admin() {
   const [ordersLoading, setOrdersLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('orders')
   const [pushingOrderId, setPushingOrderId] = useState(null)
+  const [ordersPage, setOrdersPage] = useState(1)
+  const [ordersPageSize, setOrdersPageSize] = useState(10)
+  const [ordersTotalCount, setOrdersTotalCount] = useState(0)
+  const [ordersTotalPages, setOrdersTotalPages] = useState(1)
 
   // ==================== HELPERS ====================
   const getToken = () => {
@@ -187,14 +192,29 @@ export default function Admin() {
   }
 
   // ==================== ORDERS API ====================
-  const fetchOrders = async () => {
+  const fetchOrders = async (page = ordersPage, pageSize = ordersPageSize) => {
     setOrdersLoading(true)
     setError('')
     try {
-      const res = await fetch(`${API_BASE}/orders`, { headers: headers() })
+      const res = await fetch(`${API_BASE}/orders?pageNumber=${page}&pageSize=${pageSize}`, { headers: headers() })
       if (res.ok) {
         const data = await res.json()
-        setOrders(Array.isArray(data) ? data : [])
+        if (data && Array.isArray(data.items)) {
+          setOrders(data.items)
+          setOrdersTotalCount(data.totalCount ?? 0)
+          setOrdersTotalPages(data.totalPages ?? 1)
+          setOrdersPage(data.pageNumber ?? page)
+          setOrdersPageSize(data.pageSize ?? pageSize)
+        } else if (Array.isArray(data)) {
+          setOrders(data)
+          setOrdersTotalCount(data.length)
+          setOrdersTotalPages(1)
+          setOrdersPage(1)
+        } else {
+          setOrders([])
+          setOrdersTotalCount(0)
+          setOrdersTotalPages(1)
+        }
       } else {
         setError('Failed to fetch orders')
       }
@@ -203,6 +223,42 @@ export default function Admin() {
     } finally {
       setOrdersLoading(false)
     }
+  }
+
+  const handleOrdersPageChange = (newPage) => {
+    if (newPage < 1 || newPage > ordersTotalPages || newPage === ordersPage) return
+    setOrdersPage(newPage)
+    fetchOrders(newPage, ordersPageSize)
+  }
+
+  const handleOrdersPageSizeChange = (newSize) => {
+    const size = Number(newSize)
+    setOrdersPageSize(size)
+    setOrdersPage(1)
+    fetchOrders(1, size)
+  }
+
+  const getPageNumbers = () => {
+    const pages = []
+    const total = ordersTotalPages
+    const current = ordersPage
+
+    if (total <= 7) {
+      for (let i = 1; i <= total; i++) pages.push(i)
+    } else {
+      pages.push(1)
+      if (current > 3) pages.push('ellipsis-start')
+
+      const start = Math.max(2, current - 1)
+      const end = Math.min(total - 1, current + 1)
+      for (let i = start; i <= end; i++) {
+        pages.push(i)
+      }
+
+      if (current < total - 2) pages.push('ellipsis-end')
+      pages.push(total)
+    }
+    return pages
   }
 
 const handleShiprocketPush = async (order) => {
@@ -237,7 +293,7 @@ const handleShiprocketPush = async (order) => {
     )
 
     if (res.ok) {
-      fetchOrders()
+      fetchOrders(ordersPage, ordersPageSize)
     } else {
       const err = await res.json()
       setError(err.message || 'Failed to push order to Shiprocket')
@@ -714,7 +770,7 @@ useEffect(() => {
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
-            Orders ({orders.length})
+            Orders ({ordersTotalCount})
           </button>
         </div>
 
@@ -1434,11 +1490,24 @@ useEffect(() => {
         {/* Orders Table */}
         {activeTab === 'orders' && (
           <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+            <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <h3 className="font-semibold text-[#391F10] flex items-center gap-2">
                 <ShoppingBagIcon className="h-5 w-5" />
-                Orders ({orders.length})
+                Orders ({ordersTotalCount})
               </h3>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <span className="text-xs sm:text-sm text-gray-500 font-medium">Rows per page:</span>
+                <select
+                  value={ordersPageSize}
+                  onChange={(e) => handleOrdersPageSizeChange(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-2.5 py-1 text-xs sm:text-sm bg-white text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -1456,9 +1525,9 @@ useEffect(() => {
                 </thead>
                 <tbody>
                   {ordersLoading ? (
-                    <tr><td colSpan="7" className="px-4 py-8 text-center text-gray-500">Loading orders...</td></tr>
+                    <tr><td colSpan="8" className="px-4 py-8 text-center text-gray-500">Loading orders...</td></tr>
                   ) : orders.length === 0 ? (
-                    <tr><td colSpan="7" className="px-4 py-8 text-center text-gray-500">No orders found</td></tr>
+                    <tr><td colSpan="8" className="px-4 py-8 text-center text-gray-500">No orders found</td></tr>
                   ) : (
                     orders.map((order) => (
                       <tr key={order.orderId} className="hover:bg-gray-50 transition-colors">
@@ -1523,6 +1592,65 @@ useEffect(() => {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination Controls */}
+            {ordersTotalCount > 0 && (
+              <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-xs sm:text-sm text-gray-500">
+                  Showing <span className="font-semibold text-gray-700">{ordersTotalCount === 0 ? 0 : (ordersPage - 1) * ordersPageSize + 1}</span> to{' '}
+                  <span className="font-semibold text-gray-700">{Math.min(ordersPage * ordersPageSize, ordersTotalCount)}</span> of{' '}
+                  <span className="font-semibold text-gray-700">{ordersTotalCount}</span> orders
+                </div>
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <button
+                    onClick={() => handleOrdersPageChange(ordersPage - 1)}
+                    disabled={ordersPage <= 1 || ordersLoading}
+                    className="p-1.5 sm:px-3 sm:py-1.5 border border-gray-300 rounded-lg text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeftIcon className="h-4 w-4" />
+                    <span className="hidden sm:inline">Previous</span>
+                  </button>
+
+                  <div className="flex items-center gap-1">
+                    {getPageNumbers().map((page, idx) => {
+                      if (typeof page === 'string') {
+                        return (
+                          <span key={`${page}-${idx}`} className="px-2 py-1 text-gray-400 text-xs">
+                            ...
+                          </span>
+                        )
+                      }
+                      const isActive = page === ordersPage
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => handleOrdersPageChange(page)}
+                          disabled={ordersLoading}
+                          className={`w-8 h-8 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+                            isActive
+                              ? 'bg-[#391F10] text-white shadow-sm'
+                              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  <button
+                    onClick={() => handleOrdersPageChange(ordersPage + 1)}
+                    disabled={ordersPage >= ordersTotalPages || ordersLoading}
+                    className="p-1.5 sm:px-3 sm:py-1.5 border border-gray-300 rounded-lg text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                    aria-label="Next page"
+                  >
+                    <span className="hidden sm:inline">Next</span>
+                    <ChevronRightIcon className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
