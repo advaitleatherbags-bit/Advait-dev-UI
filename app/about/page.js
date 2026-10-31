@@ -1,7 +1,6 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import Link from 'next/link'
 
 // Testimonials Data - Leather Bags Customers
 const testimonials = [
@@ -49,16 +48,6 @@ const testimonials = [
   }
 ]
 
-// Categories Data - Leather Bags Categories
-const categories = [
-  { id: 'cat-1', name: 'Handbags', icon: '👜', bg: 'from-pink-50 to-purple-50' },
-  { id: 'cat-2', name: 'Briefcases', icon: '💼', bg: 'from-blue-50 to-indigo-50' },
-  { id: 'cat-3', name: 'Backpacks', icon: '🎒', bg: 'from-amber-50 to-orange-50' },
-  { id: 'cat-4', name: 'Wallets', icon: '👛', bg: 'from-emerald-50 to-teal-50' },
-  { id: 'cat-5', name: 'Messenger Bags', icon: '📁', bg: 'from-purple-50 to-pink-50' },
-  { id: 'cat-6', name: 'Luggage', icon: '🧳', bg: 'from-red-50 to-rose-50' },
-]
-
 const instagramPostUrl = 'https://www.instagram.com/p/DdGxCQzxCst/?stkn=d2F2MXlvajFtNzlx'
 
 // Instagram Posts
@@ -75,46 +64,6 @@ export default function About() {
     <div className="min-h-screen py-8 sm:py-16 bg-white">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
         
-        {/* Shop by Category Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-12 sm:mb-20"
-        >
-          <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-[#391F10] mb-2 sm:mb-3 tracking-tight">
-              Shop by Category
-            </h2>
-            <p className="text-sm sm:text-base text-gray-500 max-w-2xl mx-auto">
-              Explore our premium leather bag collection
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 md:gap-6">
-            {categories.map((category) => (
-              <motion.div
-                key={category.id}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: parseInt(category.id.split('-')[1]) * 0.1 }}
-                whileHover={{ scale: 1.05, y: -5 }}
-                className="group cursor-pointer"
-              >
-                <Link href={`/collection?category=${category.name.toLowerCase()}`}>
-                  <div className={`bg-gradient-to-br ${category.bg} rounded-xl sm:rounded-2xl p-4 sm:p-6 text-center transition-all duration-300 shadow-sm hover:shadow-xl border-2 border-transparent hover:border-[#C9A96E]`}>
-                    <div className="text-3xl sm:text-5xl md:text-6xl mb-2 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
-                      {category.icon}
-                    </div>
-                    <h3 className="font-semibold text-[#391F10] text-xs sm:text-sm md:text-base">{category.name}</h3>
-                    <div className="mt-1 sm:mt-2 w-6 sm:w-8 h-0.5 bg-[#C9A96E] mx-auto group-hover:w-8 sm:group-hover:w-12 transition-all duration-300" />
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
         {/* Customer Testimonials */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
